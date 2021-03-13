@@ -129,11 +129,15 @@ vim nano iproute2 net-tools inetutils-ping tree software-properties-common
 #Install the nvidia toolkit, since Cuda is already installed this should not be nessisary, lets revisit and try to figure out
 #RUN apt install -y nvidia-cuda-toolkit
 
-RUN sudo add-apt-repository ppa:deadsnakes/ppa
-RUN sudo apt-get update
-RUN sudo apt-get install -y python3.6 python3.6-dev
-RUN curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3.6
-RUN pip3.6 install -U tensorflow-gpu==1.4.1 Keras==2.1.2 h5py==2.7.0 numpy scikit-image scikit-learn scipy rosdep rosinstall_generator wstool rosinstall roboticstoolbox-python opencv-python IPython
+RUN sudo apt install -y libcudnn6 libcudnn6-dev
+
+#RUN sudo add-apt-repository ppa:deadsnakes/ppa
+#RUN sudo apt-get update
+#RUN sudo apt-get install -y python3.6 python3.6-dev
+#RUN curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3.6
+#RUN pip3.6 install -U tensorflow-gpu==1.4.1 Keras==2.1.2 h5py==2.7.0 numpy scikit-image scikit-learn scipy rosdep rosinstall_generator wstool rosinstall roboticstoolbox-python opencv-python IPython
+RUN curl https://bootstrap.pypa.io/pip/2.7/get-pip.py | sudo -H python
+RUN pip install rosdep tensorflow-gpu==1.4.1 Keras==2.1.2 h5py==2.7.0 enum34==1.1.2
 
 WORKDIR /home/baxter/
 RUN mkdir -p tools
@@ -143,8 +147,6 @@ RUN chmod a+x aptsources-cleanup.pyz
 RUN ./aptsources-cleanup.pyz -y
 RUN apt update
 RUN apt upgrade -y
-
-RUN sudo apt install -y libcudnn6 libcudnn6-dev
 
 #Installing baxter_sdk
 WORKDIR /home/baxter
@@ -170,7 +172,7 @@ RUN sed -i -e '16 s/value="0.1"/value="0.0"/g' /home/baxter/catkin_ws/src/moveit
 RUN git clone -b kinetic-devel https://github.com/UbiquityRobotics/fiducials
 RUN git clone -b kinetic-devel https://github.com/ros-perception/vision_msgs
 
-RUN git clone -b kinetic-devel https://github.com/AIResearchLab/mask_rcnn_ros
+RUN git clone -b kinetic-devel https://github.com/akio/mask_rcnn_ros
 #Install the requirements for mask rcnn
 
 WORKDIR /home/baxter/catkin_ws/src/mask_rcnn_ros/examples/
@@ -179,6 +181,8 @@ RUN export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64/:/usr/local/cu
 
 RUN apt update
 RUN apt upgrade -y
+
+RUN pip install scikit-image IPython && apt install python-tk
 
 WORKDIR /home/baxter/catkin_ws
 # it is neccesary to run 
