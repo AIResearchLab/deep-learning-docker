@@ -31,5 +31,4 @@ sudo docker run --rm -it --name="dl_robotics" \
     --env="XAUTHORITY=$XAUTH" \
     --volume="$XAUTH:$XAUTH" \
     --runtime=nvidia \
-    deep_learning_kit \
-    bash
+    deep_learning_kit

@@ -133,7 +133,18 @@ RUN sudo add-apt-repository ppa:deadsnakes/ppa
 RUN sudo apt-get update
 RUN sudo apt-get install -y python3.6 python3.6-dev
 RUN curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3.6
-RUN pip3.6 install -U h5py Keras numpy scikit-image scikit-learn scipy tensorflow-gpu==1.4.1 rosdep rosinstall_generator wstool rosinstall roboticstoolbox-python opencv-python
+RUN pip3.6 install -U tensorflow-gpu==1.4.1 Keras==2.1.2 h5py==2.7.0 numpy scikit-image scikit-learn scipy rosdep rosinstall_generator wstool rosinstall roboticstoolbox-python opencv-python IPython
+
+WORKDIR /home/baxter/
+RUN mkdir -p tools
+WORKDIR tools
+RUN wget https://github.com/davidfoerster/aptsources-cleanup/releases/download/v0.1.7.5.2/aptsources-cleanup.pyz
+RUN chmod a+x aptsources-cleanup.pyz
+RUN ./aptsources-cleanup.pyz -y
+RUN apt update
+RUN apt upgrade -y
+
+RUN sudo apt install -y libcudnn6 libcudnn6-dev
 
 #Installing baxter_sdk
 WORKDIR /home/baxter
@@ -159,22 +170,22 @@ RUN sed -i -e '16 s/value="0.1"/value="0.0"/g' /home/baxter/catkin_ws/src/moveit
 RUN git clone -b kinetic-devel https://github.com/UbiquityRobotics/fiducials
 RUN git clone -b kinetic-devel https://github.com/ros-perception/vision_msgs
 
-RUN git clone -b kinetic-devel https://github.com/akio/mask_rcnn_ros
+RUN git clone -b kinetic-devel https://github.com/AIResearchLab/mask_rcnn_ros
 #Install the requirements for mask rcnn
 
 WORKDIR /home/baxter/catkin_ws/src/mask_rcnn_ros/examples/
 RUN /bin/bash -c './download_example_bag.sh'
+RUN export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64/:/usr/local/cuda-8.0/lib64/
 
-#Next, we need to edit the mask_rcnn to account for our python setup, we import a python script for our specific purpose here
-COPY mask_rcnn_node_UC_ver /home/baxter/catkin_ws/src/mask_rcnn_ros/nodes/mask_rcnn_node_UC_ver
-
-WORKDIR /home/baxter/catkin_ws
-#need to install cuda nn
-
+RUN apt update
+RUN apt upgrade -y
 
 WORKDIR /home/baxter/catkin_ws
 # it is neccesary to run 
 RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; catkin_make'
+
+#Default startup commands
+#ENTRYPOINT source /home/baxter/catkin_ws/devel/setup.bash && /bin/bash
 
 #Now time for my changes to get the mask rcnn package up and running
 
