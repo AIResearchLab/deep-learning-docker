@@ -157,6 +157,8 @@ RUN git clone -b kinetic-devel https://github.com/UbiquityRobotics/fiducials
 RUN git clone -b kinetic-devel https://github.com/ros-perception/vision_msgs
 
 RUN git clone -b kinetic-devel https://github.com/akio/mask_rcnn_ros
+#Install the requirements for mask rcnn
+
 
 
 WORKDIR /home/baxter/catkin_ws
