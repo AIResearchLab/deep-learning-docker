@@ -126,11 +126,14 @@ ros-kinetic-fiducials \
 #Debugging
 vim nano iproute2 net-tools inetutils-ping tree software-properties-common
 
+#Install the nvidia toolkit, since Cuda is already installed this should not be nessisary, lets revisit and try to figure out
+#RUN apt install -y nvidia-cuda-toolkit
+
 RUN sudo add-apt-repository ppa:deadsnakes/ppa
 RUN sudo apt-get update
 RUN sudo apt-get install -y python3.6 python3.6-dev
 RUN curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3.6
-RUN pip3.6 install -U rosdep rosinstall_generator wstool rosinstall roboticstoolbox-python
+RUN pip3.6 install -U h5py Keras numpy scikit-image scikit-learn scipy tensorflow-gpu=1.2.0 rosdep rosinstall_generator wstool rosinstall roboticstoolbox-python opencv-python
 
 #Installing baxter_sdk
 WORKDIR /home/baxter
@@ -159,11 +162,21 @@ RUN git clone -b kinetic-devel https://github.com/ros-perception/vision_msgs
 RUN git clone -b kinetic-devel https://github.com/akio/mask_rcnn_ros
 #Install the requirements for mask rcnn
 
+WORKDIR /home/baxter/catkin_ws/src/mask_rcnn_ros/examples/
+RUN /bin/bash -c './download_example_bag.sh'
+
+#Next, we need to edit the mask_rcnn to account for our python setup, we import a python script for our specific purpose here
+COPY mask_rcnn_node_UC_ver /home/baxter/catkin_ws/src/mask_rcnn_ros/nodes/mask_rcnn_node_UC_ver
+
+
 
 
 WORKDIR /home/baxter/catkin_ws
 # it is neccesary to run 
 RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; catkin_make'
+
+#Now time for my changes to get the mask rcnn package up and running
+
 
 # Install ROS packages
 #RUN apt-get update && apt-get install -y \
