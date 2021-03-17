@@ -1,0 +1,46 @@
+pip3.6 install cython
+    2  cd src/
+    3  git clone https://github.com/iKrishneel/mask_rcnn_ros
+    4  pip3.6 install virtualenv virtualenvwrapper
+    5  sudo find / -name virtualenvwrapper.sh
+    6  /usr/share/virtualenvwrapper/virtualenvwrapper.sh
+    7  sudo find / -name virtualenvwrapper.sh
+    8  vim ~/.bashrc 
+    9  source ~/.bashrc 
+   10  export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3.6
+   11  source ~/.bashrc 
+   12  venv_name=mrcnn
+   13  mkvirtualenv --python=python3 $venv_name
+   14  cd mask_rcnn_ros/
+   15  ls
+   16  pip install -r requirements.txt 
+   17  pip install pycocotools
+   18  vim requirements.txt 
+   19  pip install pycocotools
+   20  pip install -r requirements.txt 
+   21  catkin build mask_rcnn_ros
+   22  cd ../..
+   23  catkin_make
+   24  rostopic list
+   25  source devel/setup.bash 
+   26  roslaunch mask_rcnn_ros mask_rcnn_ros.launch image:=/camera/rgb/image_raw
+   27  pip install cv2
+   28  pip install opencv-python
+   29  python
+   30  rosed mask_rcnn_ros object_detector_node.py 
+   31  python
+   32  pip install cv2
+   33  pip install opencv-python
+   34  roslaunch mask_rcnn_ros mask_rcnn_ros.launch image:=/camera/rgb/image_raw
+   35  python
+   36  ls
+   37  roslaunch mask_rcnn_ros mask_rcnn_ros.launch image:=/camera/rgb/image_raw
+   38  roscat mask_rcnn_ros object_detector_node.py 
+   39  roscat mask_rcnn_ros object_detector_node.py | grep h5
+   40  roslaunch mask_rcnn_ros mask_rcnn_ros.launch image:=/camera/rgb/image_raw
+   41  roscat mask_rcnn_ros mask_rcnn_ros.launch 
+   42  cd src/mask_rcnn_ros/models/
+   43  ls
+   44  roscat mask_rcnn_ros mask_rcnn_ros.launch 
+   45  roslaunch mask_rcnn_ros mask_rcnn_ros.launch 
+   46  history

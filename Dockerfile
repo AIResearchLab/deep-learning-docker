@@ -112,7 +112,9 @@ RUN echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc
     apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116 && \
     apt-get update
     
+    
 SHELL ["/bin/bash", "-c"]
+
 # automatically sources the default ros on docker run
 RUN echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
 # Package for installing Baxter
@@ -131,13 +133,19 @@ vim nano iproute2 net-tools inetutils-ping tree software-properties-common
 
 RUN sudo apt install -y libcudnn6 libcudnn6-dev
 
-#RUN sudo add-apt-repository ppa:deadsnakes/ppa
-#RUN sudo apt-get update
-#RUN sudo apt-get install -y python3.6 python3.6-dev
-#RUN curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3.6
-#RUN pip3.6 install -U tensorflow-gpu==1.4.1 Keras==2.1.2 h5py==2.7.0 numpy scikit-image scikit-learn scipy rosdep rosinstall_generator wstool rosinstall roboticstoolbox-python opencv-python IPython
-RUN curl https://bootstrap.pypa.io/pip/2.7/get-pip.py | sudo -H python
-RUN pip install rosdep tensorflow-gpu==1.4.1 Keras==2.1.2 h5py==2.7.0 enum34==1.1.2
+RUN sudo add-apt-repository ppa:deadsnakes/ppa
+RUN sudo apt-get update
+RUN sudo apt-get install -y python3.6 python3.6-dev python3.6-tk
+RUN curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3.6
+RUN pip3.6 install -U tensorflow Keras h5py numpy scikit-image scikit-learn scipy rosdep rosinstall_generator wstool rosinstall roboticstoolbox-python opencv-python IPython pycocotools Pillow cython matplotlib imgaug rospkg catkin_pkg tqdm gdown
+#Setup and run the VM requirements
+RUN pip3.6 install virtualenv virtualenvwrapper cython
+ENV VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3.6
+CMD source /usr/local/bin/virtualenvwrapper.sh
+ENV venv_name=mrcnn
+CMD mkvirtualenv --python=python3 $venv_name
+#RUN curl https://bootstrap.pypa.io/pip/2.7/get-pip.py | sudo -H python
+#RUN pip install rosdep tensorflow-gpu==1.4.1 Keras==2.1.2 h5py==2.7.0 enum34==1.1.2
 
 WORKDIR /home/baxter/
 RUN mkdir -p tools
@@ -172,44 +180,17 @@ RUN sed -i -e '16 s/value="0.1"/value="0.0"/g' /home/baxter/catkin_ws/src/moveit
 RUN git clone -b kinetic-devel https://github.com/UbiquityRobotics/fiducials
 RUN git clone -b kinetic-devel https://github.com/ros-perception/vision_msgs
 
-RUN git clone -b kinetic-devel https://github.com/akio/mask_rcnn_ros
+#Install Maskrcnn
+RUN git clone https://github.com/iKrishneel/mask_rcnn_ros
+#Install the yolo program
+RUN git clone --recursive https://github.com/leggedrobotics/darknet_ros
 #Install the requirements for mask rcnn
 
-WORKDIR /home/baxter/catkin_ws/src/mask_rcnn_ros/examples/
-RUN /bin/bash -c './download_example_bag.sh'
 RUN export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64/:/usr/local/cuda-8.0/lib64/
 
 RUN apt update
 RUN apt upgrade -y
 
-RUN pip install scikit-image IPython && apt install python-tk
-
 WORKDIR /home/baxter/catkin_ws
 # it is neccesary to run 
 RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; catkin_make'
-
-#Default startup commands
-#ENTRYPOINT source /home/baxter/catkin_ws/devel/setup.bash && /bin/bash
-
-#Now time for my changes to get the mask rcnn package up and running
-
-
-# Install ROS packages
-#RUN apt-get update && apt-get install -y \
-#        ros-kinetic-xxx
-#    rm -rf /var/lib/apt/lists/*
-
-# Add new sudo user
-#ENV USERNAME=username
-#RUN useradd -m $USERNAME && \
-#        echo "$USERNAME:$USERNAME" | chpasswd && \
-#        usermod --shell /bin/bash $USERNAME && \
-#        usermod -aG sudo $USERNAME && \
-#        echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USERNAME && \
-#        chmod 0440 /etc/sudoers.d/$USERNAME && \
-#        usermod  --uid 1000 $USERNAME && \
-#        groupmod --gid 1000 $USERNAME
-
-# Uncomment to change default user and working directory
-#USER rosmaster
-#WORKDIR /home/rosmaster/
