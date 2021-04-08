@@ -1,3 +1,4 @@
+
 FROM osrf/ros:kinetic-desktop-full
 
 RUN rm -rf /var/lib/apt/lists/*
@@ -25,7 +26,7 @@ ENV LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/usr/lib/i386-linux-gnu${LD_LIBRAR
 RUN apt-get update && apt-get install -y --no-install-recommends \
         apt-utils && \
     apt-get install -y --no-install-recommends \
-        git wget \
+        git \
         ca-certificates \
         make \
         automake \
@@ -69,19 +70,31 @@ RUN echo '/usr/local/lib/x86_64-linux-gnu' >> /etc/ld.so.conf.d/glvnd.conf && \
 ENV LD_LIBRARY_PATH=/usr/local/lib/x86_64-linux-gnu:/usr/local/lib/i386-linux-gnu${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 
 # ==================
-# Changed how we build this file for my sanity
-RUN mkdir /home/cuda
-WORKDIR /home/cuda
- 
-COPY ./keyboard /etc/default/keyboard
+# below sourced from https://gitlab.com/nvidia/cuda/blob/ubuntu16.04/8.0/runtime/Dockerfile
 
-RUN wget https://developer.nvidia.com/compute/cuda/8.0/Prod2/local_installers/cuda-repo-ubuntu1604-8-0-local-ga2_8.0.61-1_amd64-deb
-RUN sudo dpkg -i cuda-repo-ubuntu1604-8-0-local-ga2_8.0.61-1_amd64-deb
-RUN wget https://developer.nvidia.com/compute/cuda/8.0/Prod2/patches/2/cuda-repo-ubuntu1604-8-0-local-cublas-performance-update_8.0.61-1_amd64-deb
-RUN sudo dpkg -i cuda-repo-ubuntu1604-8-0-local-cublas-performance-update_8.0.61-1_amd64-deb
-RUN sudo apt-get update
+RUN apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub && \
+    echo "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64 /" > /etc/apt/sources.list.d/cuda.list && \
+    echo "deb http://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1604/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list
 
-RUN sudo apt-get -y install cuda
+ENV CUDA_VERSION_MAJOR=8.0 \
+    CUDA_VERSION_MINOR=61 \
+    CUDA_PKG_EXT=8-0
+ENV CUDA_VERSION=$CUDA_VERSION_MAJOR.$CUDA_VERSION_MINOR
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        cuda-nvrtc-dev-$CUDA_PKG_EXT=$CUDA_VERSION-1 \
+        cuda-nvgraph-dev-$CUDA_PKG_EXT=$CUDA_VERSION-1 \
+        cuda-cusolver-dev-$CUDA_PKG_EXT=$CUDA_VERSION-1 \
+        cuda-cublas-dev-$CUDA_PKG_EXT=$CUDA_VERSION.2-1 \
+        cuda-cufft-dev-$CUDA_PKG_EXT=$CUDA_VERSION-1 \
+        cuda-curand-dev-$CUDA_PKG_EXT=$CUDA_VERSION-1 \
+        cuda-cusparse-dev-$CUDA_PKG_EXT=$CUDA_VERSION-1 \
+        cuda-npp-dev-$CUDA_PKG_EXT=$CUDA_VERSION-1 \
+        cuda-cudart-dev-$CUDA_PKG_EXT=$CUDA_VERSION-1 \
+        cuda-misc-headers-$CUDA_PKG_EXT=$CUDA_VERSION-1 \
+        cuda-toolkit-$CUDA_PKG_EXT=$CUDA_VERSION-1  && \
+    ln -s cuda-$CUDA_VERSION_MAJOR /usr/local/cuda && \
+    ln -s /usr/local/cuda-8.0/targets/x86_64-linux/include /usr/local/cuda/include && \
+    rm -rf /var/lib/apt/lists/*
 
 # nvidia-docker 1.0
 LABEL com.nvidia.volumes.needed="nvidia_driver"
@@ -130,6 +143,8 @@ RUN pip3.6 install virtualenv virtualenvwrapper cython
 #CMD mkvirtualenv --python=python3 $venv_name
 #RUN curl https://bootstrap.pypa.io/pip/2.7/get-pip.py | sudo -H python
 #RUN pip install rosdep tensorflow-gpu==1.4.1 Keras==2.1.2 h5py==2.7.0 enum34==1.1.2
+
+
 
 WORKDIR /home/baxter/
 RUN mkdir -p tools

@@ -1,46 +1,101 @@
-pip3.6 install cython
-    2  cd src/
-    3  git clone https://github.com/iKrishneel/mask_rcnn_ros
-    4  pip3.6 install virtualenv virtualenvwrapper
-    5  sudo find / -name virtualenvwrapper.sh
-    6  /usr/share/virtualenvwrapper/virtualenvwrapper.sh
-    7  sudo find / -name virtualenvwrapper.sh
-    8  vim ~/.bashrc 
-    9  source ~/.bashrc 
-   10  export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3.6
-   11  source ~/.bashrc 
-   12  venv_name=mrcnn
-   13  mkvirtualenv --python=python3 $venv_name
-   14  cd mask_rcnn_ros/
-   15  ls
-   16  pip install -r requirements.txt 
-   17  pip install pycocotools
-   18  vim requirements.txt 
-   19  pip install pycocotools
-   20  pip install -r requirements.txt 
-   21  catkin build mask_rcnn_ros
-   22  cd ../..
-   23  catkin_make
-   24  rostopic list
-   25  source devel/setup.bash 
-   26  roslaunch mask_rcnn_ros mask_rcnn_ros.launch image:=/camera/rgb/image_raw
-   27  pip install cv2
-   28  pip install opencv-python
-   29  python
-   30  rosed mask_rcnn_ros object_detector_node.py 
-   31  python
-   32  pip install cv2
-   33  pip install opencv-python
-   34  roslaunch mask_rcnn_ros mask_rcnn_ros.launch image:=/camera/rgb/image_raw
-   35  python
-   36  ls
-   37  roslaunch mask_rcnn_ros mask_rcnn_ros.launch image:=/camera/rgb/image_raw
-   38  roscat mask_rcnn_ros object_detector_node.py 
-   39  roscat mask_rcnn_ros object_detector_node.py | grep h5
-   40  roslaunch mask_rcnn_ros mask_rcnn_ros.launch image:=/camera/rgb/image_raw
-   41  roscat mask_rcnn_ros mask_rcnn_ros.launch 
-   42  cd src/mask_rcnn_ros/models/
-   43  ls
-   44  roscat mask_rcnn_ros mask_rcnn_ros.launch 
-   45  roslaunch mask_rcnn_ros mask_rcnn_ros.launch 
-   46  history
+RUN sudo apt install -y libcudnn6 libcudnn6-dev
+    
+SHELL ["/bin/bash", "-c"]
+RUN echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
+
+# Package for installing Baxter
+RUN sudo apt-get update && sudo apt-get install -y build-essential wget git \
+# Astra packages
+ros-$ROS_DISTRO-rgbd-launch ros-$ROS_DISTRO-libuvc ros-$ROS_DISTRO-libuvc-camera ros-$ROS_DISTRO-libuvc-ros \
+# Move It
+ros-kinetic-moveit \
+#Fiducials
+ros-kinetic-fiducials \
+#Debugging
+vim nano iproute2 net-tools inetutils-ping tree software-properties-common
+
+RUN sudo add-apt-repository ppa:deadsnakes/ppa
+RUN sudo apt-get update
+RUN sudo apt-get install -y python3.6 python3.6-dev python3.6-tk
+RUN curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3.6
+RUN pip3.6 install -U tensorflow Keras h5py numpy scikit-image scikit-learn scipy rosdep rosinstall_generator wstool rosinstall roboticstoolbox-python opencv-python IPython pycocotools Pillow cython matplotlib imgaug rospkg catkin_pkg tqdm gdown
+#Setup and run the VM requirements
+RUN pip3.6 install virtualenv virtualenvwrapper cython
+#ENV venv_name=mrcnn
+#CMD mkvirtualenv --python=python3 $venv_name
+#RUN curl https://bootstrap.pypa.io/pip/2.7/get-pip.py | sudo -H python
+#RUN pip install rosdep tensorflow-gpu==1.4.1 Keras==2.1.2 h5py==2.7.0 enum34==1.1.2
+
+WORKDIR /home/baxter/
+RUN mkdir -p tools
+WORKDIR tools
+RUN wget https://github.com/davidfoerster/aptsources-cleanup/releases/download/v0.1.7.5.2/aptsources-cleanup.pyz
+RUN chmod a+x aptsources-cleanup.pyz
+RUN ./aptsources-cleanup.pyz -y
+RUN apt update
+RUN apt upgrade -y
+
+#Installing baxter_sdk
+WORKDIR /home/baxter
+RUN mkdir -p catkin_ws/src
+WORKDIR catkin_ws
+WORKDIR src
+#Baxter firware needs release 1.1.1
+RUN git clone -b release-1.1.1 https://github.com/AIResearchLab/baxter
+WORKDIR baxter
+# removing baxter entry in rosinstall file to avoid duplicate baxter_sdk folders
+RUN sed -i '1,4d' baxter_sdk.rosinstall
+RUN wstool init . baxter_sdk.rosinstall 
+RUN wstool update
+# replacing the default hostname with the hostname of the UC Baxter and changingthe distro to kinetic
+RUN sed -i -e '22 s/baxter_hostname.local/011502P0001.local/g' -e '26 s/192.168.XXX.XXX/172.17.0.2/g'  -e '30 s/"indigo"/"kinetic"/g' baxter.sh
+RUN mv baxter.sh ../..
+WORKDIR ..
+#installing ROS Astra package
+RUN git clone https://github.com/orbbec/ros_astra_camera
+RUN git clone https://github.com/orbbec/ros_astra_launch
+RUN git clone https://github.com/ros-planning/moveit_robots.git
+RUN sed -i -e '16 s/value="0.1"/value="0.0"/g' /home/baxter/catkin_ws/src/moveit_robots/baxter/baxter_moveit_config/launch/trajectory_execution.launch
+RUN git clone -b kinetic-devel https://github.com/UbiquityRobotics/fiducials
+RUN git clone -b kinetic-devel https://github.com/ros-perception/vision_msgs
+
+#Install Maskrcnn
+RUN git clone https://github.com/qixuxiang/mask_rcnn_ros
+#Install the yolo program
+RUN git clone --recursive https://github.com/leggedrobotics/darknet_ros
+#Install the requirements for mask rcnn
+
+RUN apt update
+RUN apt upgrade -y
+
+WORKDIR /home/baxter/catkin_ws
+# it is neccesary to run 
+#set the system bashrc variables# automatically sources the default ros on docker run
+RUN echo "export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3.6" >> ~/.bashrc
+RUN echo "source /usr/local/bin/virtualenvwrapper.sh" >> ~/.bashrc
+RUN echo "source /home/baxter/catkin_ws/devel/setup.bash" >> ~/.bashrc
+RUN source ~/.bashrc
+
+#RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; catkin_make'
+
+#Possibly why it's failing for me
+#RUN apt install nvidia-cuda-toolkit
+
+# Install ROS packages
+#RUN apt-get update && apt-get install -y \
+#        ros-kinetic-xxx
+#    rm -rf /var/lib/apt/lists/*
+
+# Add new sudo user
+#ENV USERNAME=username
+#RUN useradd -m $USERNAME && \
+#        echo "$USERNAME:$USERNAME" | chpasswd && \
+#        usermod --shell /bin/bash $USERNAME && \
+#        usermod -aG sudo $USERNAME && \
+#        echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USERNAME && \
+#        chmod 0440 /etc/sudoers.d/$USERNAME && \
+#        usermod  --uid 1000 $USERNAME && \
+#        groupmod --gid 1000 $USERNAME
+
+# Uncomment to change default user and working directory
+#USER rosmaster
