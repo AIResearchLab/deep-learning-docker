@@ -1,4 +1,3 @@
-
 FROM osrf/ros:kinetic-desktop-full
 
 RUN rm -rf /var/lib/apt/lists/*
@@ -179,11 +178,11 @@ RUN sed -i -e '16 s/value="0.1"/value="0.0"/g' /home/baxter/catkin_ws/src/moveit
 RUN git clone -b kinetic-devel https://github.com/UbiquityRobotics/fiducials
 RUN git clone -b kinetic-devel https://github.com/ros-perception/vision_msgs
 
-#Install Maskrcnn
-RUN git clone https://github.com/qixuxiang/mask_rcnn_ros
 #Install the yolo program
-RUN git clone --recursive https://github.com/leggedrobotics/darknet_ros
+#RUN git clone --recursive https://github.com/leggedrobotics/darknet_ros
 #Install the requirements for mask rcnn
+RUN git clone https://github.com/wjwwood/serial
+
 
 RUN apt update
 RUN apt upgrade -y
@@ -194,7 +193,28 @@ WORKDIR /home/baxter/catkin_ws
 RUN echo "export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3.6" >> ~/.bashrc
 RUN echo "source /usr/local/bin/virtualenvwrapper.sh" >> ~/.bashrc
 RUN echo "source /home/baxter/catkin_ws/devel/setup.bash" >> ~/.bashrc
+RUN echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
 RUN source ~/.bashrc
+
+WORKDIR /home/baxter/tools
+RUN git clone https://github.com/FreeSpacenav/spacenavd.git
+RUN git clone https://github.com/FreeSpacenav/libspnav.git
+WORKDIR /home/baxter/tools/spacenavd
+RUN ./configure
+RUN make install
+WORKDIR /home/baxter/tools/libspnav
+RUN ./configure
+RUN make install
+
+RUN echo "export LD_LIBRARY_PATH=/home/baxter/catkin_ws/devel/lib:/opt/ros/kinetic/lib:/opt/ros/kinetic/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/lib/x86_64-linux-gnu:/usr/local/lib/i386-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/lib/i386-linux-gnu:/usr/local/lib/" >> ~/.bashrc
+
+RUN apt install -y python-pip
+RUN pip2 install spnav
+
+
+WORKDIR /home/baxter/catkin_ws
+RUN apt install xterm -e
+
 
 #RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; catkin_make'
 
