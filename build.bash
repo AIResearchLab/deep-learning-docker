@@ -1,2 +1,2 @@
 #!/bin/bash
-sudo docker build . -t deep_learning_kit 
+docker build . -t deep_learning_kit 

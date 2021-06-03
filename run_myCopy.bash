@@ -21,7 +21,7 @@ fi
 
 
 xhost +local:docker
-sudo docker run --rm -it --name="dl_robotics" \
+docker run --rm -it --name="dl_robotics" \
     --network=host \
     --add-host=011502P0001.local:10.0.0.10 \
     --device=/dev/dri:/dev/dri \
@@ -30,6 +30,6 @@ sudo docker run --rm -it --name="dl_robotics" \
     --env="QT_X11_NO_MITSHM=1" \
     --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
     --env="XAUTHORITY=$XAUTH" \
+    --runtime=nvidia \
     --volume="$XAUTH:$XAUTH" \
     randledev:mySettings
-    #--runtime=nvidia \

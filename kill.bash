@@ -1,2 +1,2 @@
 #!/bin/bash
-sudo docker kill dl_robotics
+docker kill dl_robotics

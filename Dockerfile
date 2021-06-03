@@ -110,7 +110,7 @@ ENV NVIDIA_REQUIRE_CUDA="cuda>=$CUDA_VERSION_MAJOR"
 
 # ROS Stuff
 RUN echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list && \
-    apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116 && \
+    apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654 && \
     apt-get update
 
 #
@@ -156,8 +156,9 @@ RUN apt upgrade -y
 
 #Installing baxter_sdk
 WORKDIR /home/baxter
-RUN mkdir -p catkin_ws/src
-WORKDIR catkin_ws
+RUN mkdir -p hardware_ws/src
+RUN mkdir -p simulated_ws/src
+WORKDIR hardware_ws
 WORKDIR src
 #Baxter firware needs release 1.1.1
 RUN git clone -b release-1.1.1 https://github.com/AIResearchLab/baxter
@@ -174,7 +175,7 @@ WORKDIR ..
 RUN git clone https://github.com/orbbec/ros_astra_camera
 RUN git clone https://github.com/orbbec/ros_astra_launch
 RUN git clone https://github.com/ros-planning/moveit_robots.git
-RUN sed -i -e '16 s/value="0.1"/value="0.0"/g' /home/baxter/catkin_ws/src/moveit_robots/baxter/baxter_moveit_config/launch/trajectory_execution.launch
+RUN sed -i -e '16 s/value="0.1"/value="0.0"/g' /home/baxter/hardware_ws/src/moveit_robots/baxter/baxter_moveit_config/launch/trajectory_execution.launch
 RUN git clone -b kinetic-devel https://github.com/UbiquityRobotics/fiducials
 RUN git clone -b kinetic-devel https://github.com/ros-perception/vision_msgs
 
@@ -187,12 +188,12 @@ RUN git clone https://github.com/wjwwood/serial
 RUN apt update
 RUN apt upgrade -y
 
-WORKDIR /home/baxter/catkin_ws
+WORKDIR /home/baxter/hardware_ws
 # it is neccesary to run 
 #set the system bashrc variables# automatically sources the default ros on docker run
 RUN echo "export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3.6" >> ~/.bashrc
 RUN echo "source /usr/local/bin/virtualenvwrapper.sh" >> ~/.bashrc
-RUN echo "source /home/baxter/catkin_ws/devel/setup.bash" >> ~/.bashrc
+RUN echo "source /home/baxter/hardware_ws/devel/setup.bash" >> ~/.bashrc
 RUN echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
 RUN source ~/.bashrc
 
@@ -206,37 +207,21 @@ WORKDIR /home/baxter/tools/libspnav
 RUN ./configure
 RUN make install
 
-RUN echo "export LD_LIBRARY_PATH=/home/baxter/catkin_ws/devel/lib:/opt/ros/kinetic/lib:/opt/ros/kinetic/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/lib/x86_64-linux-gnu:/usr/local/lib/i386-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/lib/i386-linux-gnu:/usr/local/lib/" >> ~/.bashrc
+RUN echo "export LD_LIBRARY_PATH=/home/baxter/hardware_ws/devel/lib:/opt/ros/kinetic/lib:/opt/ros/kinetic/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/lib/x86_64-linux-gnu:/usr/local/lib/i386-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/lib/i386-linux-gnu:/usr/local/lib/" >> ~/.bashrc
 
-RUN apt install -y python-pip
+RUN apt update && apt upgrade
+RUN apt install -y python-pip xterm nautilus ros-kinetic-controller-manager ros-kinetic-joint-state* ros-kinetic-gazebo-ros-control ros-kinetic-ros-control ros-kinetic-effort-controllers python-rosdep python-catkin-tools python-wstool ssh
+
 RUN pip2 install spnav
 
 
-WORKDIR /home/baxter/catkin_ws
-RUN apt install xterm -e
+WORKDIR /home/baxter/simulated_ws/src
+RUN wstool init .
+RUN wstool merge https://raw.githubusercontent.com/vicariousinc/baxter_simulator/kinetic-gazebo7/baxter_simulator.rosinstall
+RUN wstool update
+RUN rosdep install -y --from-paths . --ignore-src --rosdistro kinetic --as-root=apt:false
+WORKDIR /home/baxter/simulated_ws
+RUN catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release
+RUN catkin build
 
-
-#RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; catkin_make'
-
-#Possibly why it's failing for me
-#RUN apt install nvidia-cuda-toolkit
-
-# Install ROS packages
-#RUN apt-get update && apt-get install -y \
-#        ros-kinetic-xxx
-#    rm -rf /var/lib/apt/lists/*
-
-# Add new sudo user
-#ENV USERNAME=username
-#RUN useradd -m $USERNAME && \
-#        echo "$USERNAME:$USERNAME" | chpasswd && \
-#        usermod --shell /bin/bash $USERNAME && \
-#        usermod -aG sudo $USERNAME && \
-#        echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USERNAME && \
-#        chmod 0440 /etc/sudoers.d/$USERNAME && \
-#        usermod  --uid 1000 $USERNAME && \
-#        groupmod --gid 1000 $USERNAME
-
-# Uncomment to change default user and working directory
-#USER rosmaster
-#WORKDIR /home/rosmaster/
+WORKDIR /home/baxter/hardware_ws

@@ -18,11 +18,9 @@ else
   SYS_IP_ADDR="${YOUR_IP}"
 fi
 
-
 xhost +local:docker
 
-
-sudo docker run --rm -it --name="dl_robotics" \
+docker run --rm -it --name="dl_robotics" \
     --network=host \
     --add-host=011502P0001.local:10.0.0.10 \
     --device=/dev/dri:/dev/dri \
@@ -30,7 +28,8 @@ sudo docker run --rm -it --name="dl_robotics" \
     --env="DISPLAY=$DISPLAY" \
     --env="QT_X11_NO_MITSHM=1" \
     --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+    --runtime=nvidia \
     --env="XAUTHORITY=$XAUTH" \
     --volume="$XAUTH:$XAUTH" \
     deep_learning_kit
-    #--runtime=nvidia \
+    
