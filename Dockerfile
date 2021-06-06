@@ -210,7 +210,7 @@ RUN make install
 RUN echo "export LD_LIBRARY_PATH=/home/baxter/hardware_ws/devel/lib:/opt/ros/kinetic/lib:/opt/ros/kinetic/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/lib/x86_64-linux-gnu:/usr/local/lib/i386-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/lib/i386-linux-gnu:/usr/local/lib/" >> ~/.bashrc
 
 RUN apt update && apt upgrade
-RUN apt install -y python-pip xterm nautilus ros-kinetic-controller-manager ros-kinetic-joint-state* ros-kinetic-gazebo-ros-control ros-kinetic-ros-control ros-kinetic-effort-controllers python-rosdep python-catkin-tools python-wstool ssh
+RUN apt install -y python-pip xterm nautilus ros-kinetic-controller-manager ros-kinetic-joint-state* ros-kinetic-gazebo-ros-control ros-kinetic-ros-control ros-kinetic-effort-controllers python-rosdep python-catkin-tools python-wstool ssh xclip ros-kinetic-*rqt*
 
 RUN pip2 install spnav
 
