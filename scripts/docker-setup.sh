@@ -1,4 +1,6 @@
 git clone https://github.com/AIResearchLab/cloth_sort /home/baxter/hardware_ws/src/cloth_sort
+git clone https://github.com/AIResearchLab/randle-control /home/baxter/hardware_ws/src/randle_control
+git clone https://github.com/AIResearchLab/robo_common /home/baxter/hardware_ws/src/robo_common
 source /opt/ros/kinetic/setup.bash
 export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3.6
 source /usr/local/bin/virtualenvwrapper.sh
