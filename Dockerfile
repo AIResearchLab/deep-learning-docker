@@ -183,6 +183,7 @@ RUN git clone -b kinetic-devel https://github.com/ros-perception/vision_msgs
 #RUN git clone --recursive https://github.com/leggedrobotics/darknet_ros
 #Install the requirements for mask rcnn
 RUN git clone https://github.com/wjwwood/serial
+RUN echo  "xterm*font:     *-fixed-*-*-*-18-*" > ~/.Xresources
 
 
 RUN apt update
@@ -210,8 +211,7 @@ RUN make install
 RUN echo "export LD_LIBRARY_PATH=/home/baxter/hardware_ws/devel/lib:/opt/ros/kinetic/lib:/opt/ros/kinetic/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/lib/x86_64-linux-gnu:/usr/local/lib/i386-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/lib/i386-linux-gnu:/usr/local/lib/" >> ~/.bashrc
 
 RUN apt update && apt upgrade
-RUN apt install -y python-pip xterm nautilus ros-kinetic-controller-manager ros-kinetic-joint-state* ros-kinetic-gazebo-ros-control ros-kinetic-ros-control ros-kinetic-effort-controllers python-rosdep python-catkin-tools python-wstool ssh xclip ros-kinetic-*rqt*
-
+RUN apt install -y python-pip xterm x11-xserver-utils nautilus ros-kinetic-controller-manager ros-kinetic-joint-state* ros-kinetic-gazebo-ros-control ros-kinetic-ros-control ros-kinetic-effort-controllers python-rosdep python-catkin-tools python-wstool ssh xclip ros-kinetic-*rqt*
 RUN pip2 install spnav
 
 
