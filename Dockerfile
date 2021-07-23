@@ -212,7 +212,7 @@ RUN echo "export LD_LIBRARY_PATH=/home/baxter/hardware_ws/devel/lib:/opt/ros/kin
 RUN apt update && apt upgrade
 RUN apt install -y python-pip xterm nautilus ros-kinetic-controller-manager ros-kinetic-joint-state* ros-kinetic-gazebo-ros-control ros-kinetic-ros-control ros-kinetic-effort-controllers python-rosdep python-catkin-tools python-wstool ssh xclip ros-kinetic-*rqt*
 
-RUN pip2 install spnav
+RUN pip2 install spnav gym
 
 
 WORKDIR /home/baxter/simulated_ws/src
@@ -220,6 +220,13 @@ RUN wstool init .
 RUN wstool merge https://raw.githubusercontent.com/vicariousinc/baxter_simulator/kinetic-gazebo7/baxter_simulator.rosinstall
 RUN wstool update
 RUN rosdep install -y --from-paths . --ignore-src --rosdistro kinetic --as-root=apt:false
+RUN git clone -b kinetic-devel https://github.com/AIResearchLab/control_msgs
+RUN git clone -b kinetic-devel https://github.com/AIResearchLab/ros_controllers
+RUN git clone -b kinetic-devel https://bitbucket.org/theconstructcore/openai_ros
+RUN git clone -b kinetic-devel https://github.com/ros-simulation/gazebo_ros_pkgs
+RUN git clone https://github.com/wjwwood/serial
+
+
 WORKDIR /home/baxter/simulated_ws
 RUN catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release
 RUN catkin build
