@@ -211,11 +211,15 @@ RUN make install
 RUN echo "export LD_LIBRARY_PATH=/home/baxter/hardware_ws/devel/lib:/opt/ros/kinetic/lib:/opt/ros/kinetic/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/lib/x86_64-linux-gnu:/usr/local/lib/i386-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/lib/i386-linux-gnu:/usr/local/lib/" >> ~/.bashrc
 
 RUN apt update && apt upgrade
+<<<<<<< Updated upstream
 RUN apt install -y python-pip xterm x11-xserver-utils nautilus ros-kinetic-controller-manager ros-kinetic-joint-state* ros-kinetic-gazebo-ros-control ros-kinetic-ros-control ros-kinetic-effort-controllers python-rosdep python-catkin-tools python-wstool ssh xclip ros-kinetic-*rqt* python-click
 RUN pip2 install spnav
 RUN apt install -y python-pip xterm nautilus ros-kinetic-controller-manager ros-kinetic-joint-state* ros-kinetic-gazebo-ros-control ros-kinetic-ros-control ros-kinetic-effort-controllers python-rosdep python-catkin-tools python-wstool ssh xclip ros-kinetic-*rqt*
+=======
+RUN apt install -y python-pip xterm nautilus ros-kinetic-controller-manager ros-kinetic-four-wheel-steering-msgs ros-kinetic-urdf-geometry-parser ros-kinetic-joint-state* ros-kinetic-gazebo-ros-control ros-kinetic-joy ros-kinetic-pid ros-kinetic-ros-control ros-kinetic-effort-controllers python-rosdep python-catkin-tools python-wstool ssh xclip ros-kinetic-*rqt* ros-kinetic-turtlebot-gazebo
+>>>>>>> Stashed changes
 
-RUN pip2 install spnav gym
+RUN pip2 install spnav gym gitdb==0.6.4 gitpython==1.0.2
 
 
 WORKDIR /home/baxter/simulated_ws/src
@@ -226,12 +230,12 @@ RUN rosdep install -y --from-paths . --ignore-src --rosdistro kinetic --as-root=
 RUN git clone -b kinetic-devel https://github.com/AIResearchLab/control_msgs
 RUN git clone -b kinetic-devel https://github.com/AIResearchLab/ros_controllers
 RUN git clone -b kinetic-devel https://bitbucket.org/theconstructcore/openai_ros
-RUN git clone -b kinetic-devel https://github.com/ros-simulation/gazebo_ros_pkgs
+#RUN git clone -b kinetic-devel https://github.com/ros-simulation/gazebo_ros_pkgs
 RUN git clone https://github.com/wjwwood/serial
 
 
 WORKDIR /home/baxter/simulated_ws
-RUN catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release
-RUN catkin build
+#RUN catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release
+#RUN catkin build
 
 WORKDIR /home/baxter/hardware_ws

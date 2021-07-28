@@ -13,23 +13,24 @@ then
 fi
 
 if [[ -z "${YOUR_IP}" ]]; then
-  SYS_IP_ADDR=10.0.0.161
+  SYS_IP_ADDR=10.0.0.249
 else
   SYS_IP_ADDR="${YOUR_IP}"
 fi
 
-xhost +local:docker
 
+
+xhost +local:docker
 docker run --rm -it --name="dl_robotics" \
     --network=host \
     --add-host=011502P0001.local:10.0.0.10 \
     --device=/dev/dri:/dev/dri \
-    --privileged -v /dev/bus/usb:/dev/bus/usb -e YOUR_IP=SYS_IP_ADDR \
+    --privileged -v /dev/bus/usb:/dev/bus/usb -e YOUR_IP=$SYS_IP_ADDR \
     --env="DISPLAY=$DISPLAY" \
     --env="QT_X11_NO_MITSHM=1" \
     --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
-    --runtime=nvidia \
     --env="XAUTHORITY=$XAUTH" \
+    --runtime=nvidia \
     --volume="$XAUTH:$XAUTH" \
     deep_learning_kit
     
