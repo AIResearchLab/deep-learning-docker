@@ -214,6 +214,10 @@ RUN apt update && apt upgrade
 RUN apt install -y python-pip xterm nautilus ros-kinetic-controller-manager ros-kinetic-four-wheel-steering-msgs ros-kinetic-urdf-geometry-parser ros-kinetic-joint-state* ros-kinetic-gazebo-ros-control ros-kinetic-joy ros-kinetic-pid ros-kinetic-ros-control ros-kinetic-effort-controllers python-rosdep python-catkin-tools python-wstool ssh xclip ros-kinetic-*rqt* ros-kinetic-turtlebot-gazebo python-click
 
 RUN pip2 install spnav gym gitdb==0.6.4 gitpython==1.0.2 torch
+#some Notes:
+#change /usr/local/lib/python2.7/dist-packages/torch/serialization.py line "import copyreg" to "import six.moves.copyreg as copyreg"
+#change cat /usr/local/lib/python2.7/dist-packages/torch/_six.py "import builtins" to "import __builtin__ as builtins"
+#
 
 
 WORKDIR /home/baxter/simulated_ws/src
