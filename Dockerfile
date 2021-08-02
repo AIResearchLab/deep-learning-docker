@@ -213,7 +213,7 @@ RUN echo "export LD_LIBRARY_PATH=/home/baxter/hardware_ws/devel/lib:/opt/ros/kin
 RUN apt update && apt upgrade
 RUN apt install -y python-pip xterm nautilus ros-kinetic-controller-manager ros-kinetic-four-wheel-steering-msgs ros-kinetic-urdf-geometry-parser ros-kinetic-joint-state* ros-kinetic-gazebo-ros-control ros-kinetic-joy ros-kinetic-pid ros-kinetic-ros-control ros-kinetic-effort-controllers python-rosdep python-catkin-tools python-wstool ssh xclip ros-kinetic-*rqt* ros-kinetic-turtlebot-gazebo python-click
 
-RUN pip2 install spnav gym gitdb==0.6.4 gitpython==1.0.2
+RUN pip2 install spnav gym gitdb==0.6.4 gitpython==1.0.2 torch
 
 
 WORKDIR /home/baxter/simulated_ws/src
