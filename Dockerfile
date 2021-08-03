@@ -1,5 +1,8 @@
 FROM osrf/ros:kinetic-desktop-full
 
+ARG ssh_prv_key
+ARG ssh_pub_key
+
 RUN rm -rf /var/lib/apt/lists/*
 
 ENV NVIDIA_VISIBLE_DEVICES=all \
@@ -136,7 +139,7 @@ RUN sudo apt-get update
 RUN sudo apt-get install -y python3.6 python3.6-dev python3.6-tk
 RUN curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3.6
 RUN pip3.6 install --upgrade pip
-RUN pip3.6 install tensorflow torch Keras h5py numpy scikit-image scikit-learn scipy rosdep rosinstall_generator wstool rosinstall roboticstoolbox-python opencv-python IPython pycocotools Pillow cython matplotlib imgaug rospkg catkin_pkg tqdm gdown 
+RUN pip3.6 install gitpython gitdb gym defusedxml tensorflow torch Keras h5py numpy scikit-image scikit-learn scipy rosdep rosinstall_generator wstool rosinstall roboticstoolbox-python opencv-python IPython pycocotools Pillow cython matplotlib imgaug rospkg catkin_pkg tqdm gdown 
 #Setup and run the VM requirements
 RUN pip3.6 install virtualenv virtualenvwrapper cython
 #ENV venv_name=mclickrcnn
@@ -222,6 +225,12 @@ RUN pip2 install spnav gym
 #change cat /usr/local/lib/python2.7/dist-packages/torch/_six.py "import builtins" to "import __builtin__ as builtins"
 #
 
+#This section also moves your host private key for ssh repositories
+RUN echo "$ssh_prv_key" > /root/.ssh/id_rsa && \
+    echo "$ssh_pub_key" > /root/.ssh/id_rsa.pub && \
+    chmod 600 /root/.ssh/id_rsa && \
+    chmod 600 /root/.ssh/id_rsa.pub
+
 
 WORKDIR /home/baxter/simulated_ws/src
 RUN wstool init .
@@ -234,10 +243,22 @@ RUN git clone -b version2 https://bitbucket.org/theconstructcore/openai_ros
 #RUN git clone -b kinetic-devel https://github.com/ros-simulation/gazebo_ros_pkgs
 RUN git clone -b version2 https://bitbucket.org/theconstructcore/openai_examples_projects
 RUN git clone https://github.com/wjwwood/serial
-
+##This is also a test, lets observe if the system requires an ssh key or not
+RUN git clone git@github.com:AIResearchLab/randle_description.git
+RUN git clone git@github.com:AIResearchLab/uc_deep_rl.git
+RUN git clone git@github.com:AIResearchLab/randle-control.git
 
 WORKDIR /home/baxter/simulated_ws
-#RUN catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release
-#RUN catkin build
+RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /home/baxter/simulated_ws; catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release; catkin build'
 
-WORKDIR /home/baxter/hardware_ws
+#######################THIS SECTION, BUILDS A ROS SYSTEM COMPADIBLE WITH PYTHON 3.6###################################################
+RUN pip3.6 install -U rosdep rosinstall_generator wstool rosinstall catkin_pkg pyyaml empy rospkg numpy em
+WORKDIR /home/baxter/
+RUN mkdir -p python3_rosbuild_ws/src
+WORKDIR python3_rosbuild_ws/src
+RUN git clone -b indigo-devel https://github.com/ros/geometry
+RUN git clone -b indigo-devel https://github.com/ros/geometry2
+WORKDIR python3_rosbuild_ws
+#RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /home/baxter/python3_rosbuild_ws; catkin_make --cmake-args -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/usr/bin/python3.6 -DPYTHON_LIBRARY=/usr/lib/python3.6/config-3.6m-x86_64-linux-gnu/libpython3.6m.so -DPYTHON_INCLUDE_DIR=/usr/include/python3.6m'
+RUN echo "source /home/baxter/python3_rosbuild_ws/devel_isolated/setup.bash" >> ~/.bashrc
+##################################BIG TEST VIBES ENDING#################################################################
