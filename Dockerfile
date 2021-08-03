@@ -277,7 +277,6 @@ RUN git clone -b indigo-devel https://github.com/ros/geometry
 RUN git clone -b indigo-devel https://github.com/ros/geometry2
 WORKDIR /home/baxter/python3_rosbuild_ws
 RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /home/baxter/python3_rosbuild_ws; catkin_make --cmake-args -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/usr/bin/python3.6 -DPYTHON_LIBRARY=/usr/lib/python3.6/config-3.6m-x86_64-linux-gnu/libpython3.6m.so -DPYTHON_INCLUDE_DIR=/usr/include/python3.6m'
-RUN echo "source /home/baxter/python3_rosbuild_ws/devel_isolated/setup.bash" >> ~/.bashrc
 ##################################BIG TEST VIBES ENDING#################################################################
 
 WORKDIR /home/baxter/simulated_ws
