@@ -198,9 +198,8 @@ WORKDIR /home/baxter/hardware_ws
 #set the system bashrc variables# automatically sources the default ros on docker run
 RUN echo "export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3.6" >> ~/.bashrc
 RUN echo "source /usr/local/bin/virtualenvwrapper.sh" >> ~/.bashrc
-RUN echo "source /home/baxter/hardware_ws/devel/setup.bash" >> ~/.bashrc
-RUN echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
-RUN source ~/.bashrc
+RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /home/baxter/hardware_ws; catkin_make'
+
 
 WORKDIR /home/baxter/tools
 RUN git clone https://github.com/FreeSpacenav/spacenavd.git
@@ -282,3 +281,9 @@ RUN echo "source /home/baxter/python3_rosbuild_ws/devel_isolated/setup.bash" >> 
 ##################################BIG TEST VIBES ENDING#################################################################
 
 WORKDIR /home/baxter/simulated_ws
+
+RUN echo "source /home/baxter/hardware_ws/devel/setup.bash" >> ~/.bashrc
+RUN echo "source /home/baxter/simulated_ws/devel/setup.bash" >> ~/.bashrc
+RUN echo "source /home/baxter/python3_rosbuild_ws/devel/setup.bash" >> ~/.bashrc
+RUN echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
+RUN source ~/.bashrc
