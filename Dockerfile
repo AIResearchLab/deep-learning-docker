@@ -135,7 +135,8 @@ RUN sudo add-apt-repository ppa:deadsnakes/ppa
 RUN sudo apt-get update
 RUN sudo apt-get install -y python3.6 python3.6-dev python3.6-tk
 RUN curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3.6
-RUN pip3.6 install -U tensorflow Keras h5py numpy scikit-image scikit-learn scipy rosdep rosinstall_generator wstool rosinstall roboticstoolbox-python opencv-python IPython pycocotools Pillow cython matplotlib imgaug rospkg catkin_pkg tqdm gdown 
+RUN pip3.6 install --upgrade pip
+RUN pip3.6 install tensorflow torch Keras h5py numpy scikit-image scikit-learn scipy rosdep rosinstall_generator wstool rosinstall roboticstoolbox-python opencv-python IPython pycocotools Pillow cython matplotlib imgaug rospkg catkin_pkg tqdm gdown 
 #Setup and run the VM requirements
 RUN pip3.6 install virtualenv virtualenvwrapper cython
 #ENV venv_name=mclickrcnn
@@ -213,8 +214,10 @@ RUN echo "export LD_LIBRARY_PATH=/home/baxter/hardware_ws/devel/lib:/opt/ros/kin
 RUN apt update && apt upgrade
 RUN apt install -y python-pip xterm nautilus ros-kinetic-controller-manager ros-kinetic-four-wheel-steering-msgs ros-kinetic-urdf-geometry-parser ros-kinetic-joint-state* ros-kinetic-gazebo-ros-control ros-kinetic-joy ros-kinetic-pid ros-kinetic-ros-control ros-kinetic-effort-controllers python-rosdep python-catkin-tools python-wstool ssh xclip ros-kinetic-*rqt* ros-kinetic-turtlebot-gazebo python-click
 
-RUN pip2 install spnav gym gitdb==0.6.4 gitpython==1.0.2 torch
-#some Notes:
+RUN pip2 install spnav gym 
+# May not need, most of the simulation runs on python3, next rebuild is to establish this
+#gitdb==0.6.4 gitpython==1.0.2 torch h5py==2.10.0 keras==2.2.4
+#some Notes if trying to perform RL with python2, this probably doesn't matter, but notes for myself:
 #change /usr/local/lib/python2.7/dist-packages/torch/serialization.py line "import copyreg" to "import six.moves.copyreg as copyreg"
 #change cat /usr/local/lib/python2.7/dist-packages/torch/_six.py "import builtins" to "import __builtin__ as builtins"
 #
@@ -227,8 +230,9 @@ RUN wstool update
 RUN rosdep install -y --from-paths . --ignore-src --rosdistro kinetic --as-root=apt:false
 RUN git clone -b kinetic-devel https://github.com/AIResearchLab/control_msgs
 RUN git clone -b kinetic-devel https://github.com/AIResearchLab/ros_controllers
-RUN git clone -b kinetic-devel https://bitbucket.org/theconstructcore/openai_ros
+RUN git clone -b version2 https://bitbucket.org/theconstructcore/openai_ros
 #RUN git clone -b kinetic-devel https://github.com/ros-simulation/gazebo_ros_pkgs
+RUN git clone -b version2 https://bitbucket.org/theconstructcore/openai_examples_projects
 RUN git clone https://github.com/wjwwood/serial
 
 
