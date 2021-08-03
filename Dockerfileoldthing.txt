@@ -1,3 +1,80 @@
+WORKDIR /home/baxter/simulated_ws/src
+##This is also a test, lets observe if the system requires an ssh key or not
+RUN git clone git@github.com:AIResearchLab/randle_description.git
+RUN git clone git@github.com:AIResearchLab/uc_deep_rl.git
+RUN git clone git@github.com:AIResearchLab/randle-control.git
+
+#end auto ssh test
+
+WORKDIR /home/baxter/simulated_ws/src
+RUN wstool init .
+RUN wstool merge https://raw.githubusercontent.com/vicariousinc/baxter_simulator/kinetic-gazebo7/baxter_simulator.rosinstall
+RUN wstool update
+RUN rosdep install -y --from-paths . --ignore-src --rosdistro kinetic --as-root=apt:false
+RUN git clone -b kinetic-devel https://github.com/AIResearchLab/control_msgs
+RUN git clone -b kinetic-devel https://github.com/AIResearchLab/ros_controllers
+RUN git clone -b version2 https://bitbucket.org/theconstructcore/openai_ros
+#RUN git clone -b kinetic-devel https://github.com/ros-simulation/gazebo_ros_pkgs
+RUN git clone -b version2 https://bitbucket.org/theconstructcore/openai_examples_projects
+RUN git clone https://github.com/wjwwood/serial
+
+WORKDIR /home/baxter/simulated_ws
+RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /home/baxter/simulated_ws; catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release; catkin build'
+
+#######################THIS SECTION, BUILDS A ROS SYSTEM COMPADIBLE WITH PYTHON 3.6###################################################
+RUN pip3.6 install -U rosdep rosinstall_generator wstool rosinstall catkin_pkg pyyaml empy rospkg numpy em
+WORKDIR /home/baxter/
+RUN mkdir -p python3_rosbuild_ws/src
+WORKDIR python3_rosbuild_ws/src
+RUN git clone -b indigo-devel https://github.com/ros/geometry
+RUN git clone -b indigo-devel https://github.com/ros/geometry2
+WORKDIR python3_rosbuild_ws
+#RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /home/baxter/python3_rosbuild_ws; catkin_make --cmake-args -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/usr/bin/python3.6 -DPYTHON_LIBRARY=/usr/lib/python3.6/config-3.6m-x86_64-linux-gnu/libpython3.6m.so -DPYTHON_INCLUDE_DIR=/usr/include/python3.6m'
+RUN echo "source /home/baxter/python3_rosbuild_ws/devel_isolated/setup.bash" >> ~/.bashrc
+##################################BIG TEST VIBES ENDING#################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 FROM osrf/ros:kinetic-desktop-full
 
 RUN rm -rf /var/lib/apt/lists/*
