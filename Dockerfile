@@ -135,8 +135,8 @@ ros-kinetic-fiducials \
 vim nano iproute2 net-tools inetutils-ping tree software-properties-common
 
 RUN sudo add-apt-repository ppa:deadsnakes/ppa
-RUN sudo apt-get update
-RUN sudo apt-get install -y python3.6 python3.6-dev python3.6-tk
+RUN sudo apt update
+RUN sudo apt install -y python3.6 python3.6-dev python3.6-tk
 RUN curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3.6
 RUN pip3.6 install --upgrade pip
 RUN pip3.6 install gitpython gitdb gym defusedxml tensorflow torch Keras h5py numpy scikit-image scikit-learn scipy rosdep rosinstall_generator wstool rosinstall roboticstoolbox-python opencv-python IPython pycocotools Pillow cython matplotlib imgaug rospkg catkin_pkg tqdm gdown 
@@ -198,8 +198,6 @@ WORKDIR /home/baxter/hardware_ws
 #set the system bashrc variables# automatically sources the default ros on docker run
 RUN echo "export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3.6" >> ~/.bashrc
 RUN echo "source /usr/local/bin/virtualenvwrapper.sh" >> ~/.bashrc
-RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /home/baxter/hardware_ws; catkin_make'
-
 
 WORKDIR /home/baxter/tools
 RUN git clone https://github.com/FreeSpacenav/spacenavd.git
@@ -225,8 +223,8 @@ RUN pip2 install spnav gym
 #
 
 #This section also moves your host private key for ssh repositories
-RUN apt-get update && \
-    apt-get install -y \
+RUN apt update && \
+    apt install -y \
         git \
         openssh-server \
         libmysqlclient-dev
@@ -264,25 +262,70 @@ RUN git clone git@github.com:AIResearchLab/randle_description.git
 RUN git clone git@github.com:AIResearchLab/uc_deep_rl.git
 RUN git clone git@github.com:AIResearchLab/randle-control.git
 
-WORKDIR /home/baxter/simulated_ws
-RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /home/baxter/simulated_ws; catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release; catkin build'
-
 #######################THIS SECTION, BUILDS A ROS SYSTEM COMPADIBLE WITH PYTHON 3.6###################################################
 RUN pip3.6 install --upgrade pip
 RUN pip3.6 install -U rosdep rosinstall_generator wstool rosinstall catkin_pkg pyyaml empy rospkg numpy
-WORKDIR /home/baxter/
-RUN mkdir -p /home/baxter/python3_rosbuild_ws/src
-WORKDIR /home/baxter/python3_rosbuild_ws/src
+RUN mkdir -p /home/baxter/simulated_ws/src/deps
+WORKDIR /home/baxter/simulated_ws/src/deps
 RUN git clone -b indigo-devel https://github.com/ros/geometry
 RUN git clone -b indigo-devel https://github.com/ros/geometry2
-WORKDIR /home/baxter/python3_rosbuild_ws
-RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /home/baxter/python3_rosbuild_ws; catkin_make --cmake-args -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/usr/bin/python3.6 -DPYTHON_LIBRARY=/usr/lib/python3.6/config-3.6m-x86_64-linux-gnu/libpython3.6m.so -DPYTHON_INCLUDE_DIR=/usr/include/python3.6m'
+
+WORKDIR /home/baxter/simulated_ws
 ##################################BIG TEST VIBES ENDING#################################################################
 
 WORKDIR /home/baxter/simulated_ws
 
+RUN apt update && apt upgrade
+
+#Install gazebo 9 on the system instead for better simulations
+#RUN apt remove -y ros-kinetic-gazebo*
+#RUN apt remove -y libgazebo*
+#RUN apt remove -y gazebo*
+#RUN sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
+#RUN wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
+RUN apt update
+#RUN apt install -y gazebo9 gazebo9-* ros-kinetic-gazebo9-*
+RUN apt upgrade -y
+
+
+
+#Build HW WS
+WORKDIR /home/baxter/hardware_ws
+RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /home/baxter/hardware_ws; catkin_make'
+
+
+#Before proceeding, download the required environment tests into the simulated src directory
+WORKDIR /home/baxter/simulated_ws
+RUN mkdir -p /home/baxter/simulated_ws/src/rl_envs
+WORKDIR /home/baxter/simulated_ws/src/rl_envs
+RUN git clone https://bitbucket.org/theconstructcore/hopper
+#RUN git clone -b kinetic-gazebo7 https://bitbucket.org/theconstructcore/parrot_ardrone
+RUN git clone -b kinetic-gazebo7 https://bitbucket.org/theconstructcore/turtlebot
+
+
+WORKDIR /home/baxter/simulated_ws
+#Build Sim WS, include catkin make script
+RUN echo '#!/bin/bash' > catkin_make_py3.bash
+RUN echo 'echo Please run this from the simulated workspace' >> catkin_make_py3.bash
+RUN echo 'catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release' >> catkin_make_py3.bash
+RUN echo 'catkin build --cmake-args -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/usr/bin/python3.6 -DPYTHON_LIBRARY=/usr/lib/python3.6/config-3.6m-x86_64-linux-gnu/libpython3.6m.so -DPYTHON_INCLUDE_DIR=/usr/include/python3.6m' >> catkin_make_py3.bash
+RUN echo 'source devel/setup.bash' >> catkin_make_py3.bash
+RUN chmod +x catkin_make_py3.bash
+
+#change this to a script and make it executable
+RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /home/baxter/simulated_ws; catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release; catkin build --cmake-args -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/usr/bin/python3.6 -DPYTHON_LIBRARY=/usr/lib/python3.6/config-3.6m-x86_64-linux-gnu/libpython3.6m.so -DPYTHON_INCLUDE_DIR=/usr/include/python3.6m'
+
+WORKDIR /home/baxter/simulated_ws/src
+#Go into the src examples and replace all references to /home/user/simulation_ws/ with baxter configurations
+RUN /bin/bash -c 'cd /home/baxter/simulated_ws/src;old_ws=/home/user/simulation_ws;new_ws=/home/baxter/simulated_ws;find . -type f -name '*.yaml' | xargs sed -i "s%$old_ws%$new_ws%g"'
+#Go into the OpenAI packages and do the same thing but for the python shebangs
+RUN /bin/bash -c 'cd /home/baxter/simulated_ws/src/openai_examples_projects;old_shebang="#!/usr/bin/env python";new_shebang="#!/usr/bin/env python3.6";find . -type f -name '*.py' | xargs sed -i "s%$old_shebang%$new_shebang%g"'
+RUN /bin/bash -c 'cd /home/baxter/simulated_ws/src/openai_ros;old_shebang="#!/usr/bin/env python";new_shebang="#!/usr/bin/env python3.6";find . -type f -name '*.py' | xargs sed -i "s%$old_shebang%$new_shebang%g"'
+RUN /bin/bash -c 'cd /home/baxter/simulated_ws/src/rl_envs;old_shebang="#!/usr/bin/env python";new_shebang="#!/usr/bin/env python3.6";find . -type f -name '*.py' | xargs sed -i "s%$old_shebang%$new_shebang%g"'
+
+WORKDIR /home/baxter/simulated_ws
 RUN echo "source /home/baxter/hardware_ws/devel/setup.bash" >> ~/.bashrc
-RUN echo "source /home/baxter/simulated_ws/devel/setup.bash" >> ~/.bashrc
-RUN echo "source /home/baxter/python3_rosbuild_ws/devel/setup.bash" >> ~/.bashrc
 RUN echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
+RUN echo "source /home/baxter/simulated_ws/devel/setup.bash" >> ~/.bashrc
 RUN source ~/.bashrc
+
