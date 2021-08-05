@@ -162,11 +162,11 @@ RUN apt upgrade -y
 WORKDIR /home/baxter
 RUN mkdir -p hardware_ws/src
 RUN mkdir -p simulated_ws/src
-WORKDIR hardware_ws
-WORKDIR src
+RUN mkdir -p openai_ws/src
+WORKDIR hardware_ws/src
 #Baxter firware needs release 1.1.1
 RUN git clone -b release-1.1.1 https://github.com/AIResearchLab/baxter
-WORKDIR baxter
+WORKDIR /home/baxter/hardware_ws/src/baxter
 # removing baxter entry in rosinstall file to avoid duplicate baxter_sdk folders
 RUN sed -i '1,4d' baxter_sdk.rosinstall
 RUN wstool init . baxter_sdk.rosinstall 
@@ -174,7 +174,7 @@ RUN wstool update
 # replacing the default hostname with the hostname of the UC Baxter and changingthe distro to kinetic
 RUN sed -i -e '22 s/baxter_hostname.local/011502P0001.local/g' -e '26 s/192.168.XXX.XXX/172.17.0.2/g'  -e '30 s/"indigo"/"kinetic"/g' baxter.sh
 RUN mv baxter.sh ../..
-WORKDIR ..
+WORKDIR /home/baxter/hardware_ws/src
 #installing ROS Astra package
 RUN git clone https://github.com/orbbec/ros_astra_camera
 RUN git clone https://github.com/orbbec/ros_astra_launch
@@ -196,31 +196,22 @@ RUN apt upgrade -y
 WORKDIR /home/baxter/hardware_ws
 # it is neccesary to run 
 #set the system bashrc variables# automatically sources the default ros on docker run
-RUN echo "export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3.6" >> ~/.bashrc
-RUN echo "source /usr/local/bin/virtualenvwrapper.sh" >> ~/.bashrc
+RUN echo "export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3.6" >> ~/.bashrc && echo "source /usr/local/bin/virtualenvwrapper.sh" >> ~/.bashrc
 
 WORKDIR /home/baxter/tools
 RUN git clone https://github.com/FreeSpacenav/spacenavd.git
 RUN git clone https://github.com/FreeSpacenav/libspnav.git
 WORKDIR /home/baxter/tools/spacenavd
-RUN ./configure
-RUN make install
+RUN ./configure && make install
 WORKDIR /home/baxter/tools/libspnav
-RUN ./configure
-RUN make install
+RUN ./configure && make install
 
 RUN echo "export LD_LIBRARY_PATH=/home/baxter/hardware_ws/devel/lib:/opt/ros/kinetic/lib:/opt/ros/kinetic/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/lib/x86_64-linux-gnu:/usr/local/lib/i386-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/lib/i386-linux-gnu:/usr/local/lib/" >> ~/.bashrc
 
 RUN apt update && apt upgrade
 RUN apt install -y python-pip xterm nautilus ros-kinetic-controller-manager ros-kinetic-four-wheel-steering-msgs ros-kinetic-urdf-geometry-parser ros-kinetic-joint-state* ros-kinetic-gazebo-ros-control ros-kinetic-joy ros-kinetic-pid ros-kinetic-ros-control ros-kinetic-effort-controllers python-rosdep python-catkin-tools python-wstool ssh xclip ros-kinetic-*rqt* ros-kinetic-turtlebot-gazebo python-click
 
-RUN pip2 install spnav gym 
-# May not need, most of the simulation runs on python3, next rebuild is to establish this
-#gitdb==0.6.4 gitpython==1.0.2 torch h5py==2.10.0 keras==2.2.4
-#some Notes if trying to perform RL with python2, this probably doesn't matter, but notes for myself:
-#change /usr/local/lib/python2.7/dist-packages/torch/serialization.py line "import copyreg" to "import six.moves.copyreg as copyreg"
-#change cat /usr/local/lib/python2.7/dist-packages/torch/_six.py "import builtins" to "import __builtin__ as builtins"
-#
+RUN pip2 install spnav rosdep rosinstall_generator wstool rosinstall catkin_pkg pyyaml empy rospkg numpy gitdb==0.6.4 gitpython==1.0.2 defusedxml gym==0.7.4
 
 #This section also moves your host private key for ssh repositories
 RUN apt update && \
@@ -251,81 +242,80 @@ RUN wstool update
 RUN rosdep install -y --from-paths . --ignore-src --rosdistro kinetic --as-root=apt:false
 RUN git clone -b kinetic-devel https://github.com/AIResearchLab/control_msgs
 RUN git clone -b kinetic-devel https://github.com/AIResearchLab/ros_controllers
-RUN git clone -b version2 https://bitbucket.org/theconstructcore/openai_ros
-#RUN git clone -b kinetic-devel https://github.com/ros-simulation/gazebo_ros_pkgs
-RUN git clone -b version2 https://bitbucket.org/theconstructcore/openai_examples_projects
 RUN git clone https://github.com/wjwwood/serial
+
+
+WORKDIR /home/baxter/openai_ws/src
+RUN git clone -b version2 https://bitbucket.org/theconstructcore/openai_ros && \
+    git clone -b version2 https://bitbucket.org/theconstructcore/openai_examples_projects && \
+    git clone git@github.com:AIResearchLab/uc_deep_rl.git
+
+RUN mkdir -p /home/baxter/openai_ws/src/deps
+WORKDIR /home/baxter/openai_ws/src/deps
+RUN git clone -b jade-devel https://github.com/ros-planning/navigation_msgs/ && \
+    git clone https://bitbucket.org/theconstructcore/spawn_robot_tools && \
+    git clone -b indigo-devel https://github.com/ros/geometry && \
+    git clone -b indigo-devel https://github.com/ros/geometry2 && \
+    git clone -b kinetic-devel https://github.com/ros-simulation/gazebo_ros_pkgs && \
+    git clone -b indigo-devel https://github.com/ros/common_msgs
+RUN mkdir -p /home/baxter/openai_ws/src/rl_envs
+WORKDIR /home/baxter/openai_ws/src/rl_envs
+RUN git clone -b kinetic-gazebo9 https://bitbucket.org/theconstructcore/turtlebot && \
+    #git clone -b kinetic-gazebo7 https://bitbucket.org/theconstructcore/parrot_ardrone && \
+    git clone https://bitbucket.org/theconstructcore/hopper
+
 
 WORKDIR /home/baxter/simulated_ws/src
 ##This is also a test, lets observe if the system requires an ssh key or not
-RUN git clone git@github.com:AIResearchLab/randle_description.git
-RUN git clone git@github.com:AIResearchLab/uc_deep_rl.git
-RUN git clone git@github.com:AIResearchLab/randle-control.git
+RUN git clone git@github.com:AIResearchLab/randle_description.git && \
+    git clone git@github.com:AIResearchLab/randle-control.git
 
-#######################THIS SECTION, BUILDS A ROS SYSTEM COMPADIBLE WITH PYTHON 3.6###################################################
 RUN pip3.6 install --upgrade pip
 RUN pip3.6 install -U rosdep rosinstall_generator wstool rosinstall catkin_pkg pyyaml empy rospkg numpy
-RUN mkdir -p /home/baxter/simulated_ws/src/deps
-WORKDIR /home/baxter/simulated_ws/src/deps
-RUN git clone -b indigo-devel https://github.com/ros/geometry
-RUN git clone -b indigo-devel https://github.com/ros/geometry2
 
-WORKDIR /home/baxter/simulated_ws
-##################################BIG TEST VIBES ENDING#################################################################
-
-WORKDIR /home/baxter/simulated_ws
-
-RUN apt update && apt upgrade
-
-#Install gazebo 9 on the system instead for better simulations
-#RUN apt remove -y ros-kinetic-gazebo*
-#RUN apt remove -y libgazebo*
-#RUN apt remove -y gazebo*
-#RUN sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
-#RUN wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
-RUN apt update
-#RUN apt install -y gazebo9 gazebo9-* ros-kinetic-gazebo9-*
-RUN apt upgrade -y
-
+RUN apt update && apt upgrade -y
 
 
 #Build HW WS
 WORKDIR /home/baxter/hardware_ws
 RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /home/baxter/hardware_ws; catkin_make'
 
+WORKDIR /home/baxter/openai_ws
+RUN echo '#!/bin/bash' > py3_catkin_make.bash && \
+    echo 'echo Please run this from the simulated workspace' >> py3_catkin_make.bash && \
+     echo 'rm -r devel build logs' >> py3_catkin_make.bash && \
+     echo 'catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release' >> py3_catkin_make.bash && \
+     echo 'catkin build --cmake-args -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/usr/bin/python3.6 -DPYTHON_LIBRARY=/usr/lib/python3.6/config-3.6m-x86_64-linux-gnu/libpython3.6m.so -DPYTHON_INCLUDE_DIR=/usr/include/python3.6m' >> py3_catkin_make.bash && \
+    echo 'source devel/setup.bash' >> py3_catkin_make.bash
 
-#Before proceeding, download the required environment tests into the simulated src directory
-WORKDIR /home/baxter/simulated_ws
-RUN mkdir -p /home/baxter/simulated_ws/src/rl_envs
-WORKDIR /home/baxter/simulated_ws/src/rl_envs
-RUN git clone https://bitbucket.org/theconstructcore/hopper
-#RUN git clone -b kinetic-gazebo7 https://bitbucket.org/theconstructcore/parrot_ardrone
-RUN git clone -b kinetic-gazebo7 https://bitbucket.org/theconstructcore/turtlebot
 
+RUN echo '#!/bin/bash' > catkin_make.bash  && \
+    echo 'echo Please run this from the simulated workspace' >> catkin_make.bash && \
+    echo 'rm -r devel build logs' >> catkin_make.bash && \
+    echo 'catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release' >> catkin_make.bash && \
+    echo 'catkin build --cmake-args -DCMAKE_BUILD_TYPE=Release' >> catkin_make.bash  && \
+    echo 'source devel/setup.bash' >> catkin_make.bash && \
+    chmod +x py3_catkin_make.bash catkin_make.bash
+
+#change this to a script and make it executable
+RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /home/baxter/openai_ws; catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release; catkin build --cmake-args -DCMAKE_BUILD_TYPE=Release'
 
 WORKDIR /home/baxter/simulated_ws
 #Build Sim WS, include catkin make script
-RUN echo '#!/bin/bash' > catkin_make_py3.bash
-RUN echo 'echo Please run this from the simulated workspace' >> catkin_make_py3.bash
-RUN echo 'catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release' >> catkin_make_py3.bash
-RUN echo 'catkin build --cmake-args -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/usr/bin/python3.6 -DPYTHON_LIBRARY=/usr/lib/python3.6/config-3.6m-x86_64-linux-gnu/libpython3.6m.so -DPYTHON_INCLUDE_DIR=/usr/include/python3.6m' >> catkin_make_py3.bash
-RUN echo 'source devel/setup.bash' >> catkin_make_py3.bash
-RUN chmod +x catkin_make_py3.bash
+RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /home/baxter/simulated_ws;catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release; catkin build --cmake-args -DCMAKE_BUILD_TYPE=Release'
 
-#change this to a script and make it executable
-RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /home/baxter/simulated_ws; catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release; catkin build --cmake-args -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/usr/bin/python3.6 -DPYTHON_LIBRARY=/usr/lib/python3.6/config-3.6m-x86_64-linux-gnu/libpython3.6m.so -DPYTHON_INCLUDE_DIR=/usr/include/python3.6m'
 
-WORKDIR /home/baxter/simulated_ws/src
+WORKDIR /home/baxter/openai_ws/src
 #Go into the src examples and replace all references to /home/user/simulation_ws/ with baxter configurations
-RUN /bin/bash -c 'cd /home/baxter/simulated_ws/src;old_ws=/home/user/simulation_ws;new_ws=/home/baxter/simulated_ws;find . -type f -name '*.yaml' | xargs sed -i "s%$old_ws%$new_ws%g"'
+RUN /bin/bash -c 'cd /home/baxter/openai_ws/src;old_ws=/home/user/simulation_ws;new_ws=/home/baxter/openai_ws;find . -type f -name '*.yaml' | xargs sed -i "s%$old_ws%$new_ws%g"'
 #Go into the OpenAI packages and do the same thing but for the python shebangs
-RUN /bin/bash -c 'cd /home/baxter/simulated_ws/src/openai_examples_projects;old_shebang="#!/usr/bin/env python";new_shebang="#!/usr/bin/env python3.6";find . -type f -name '*.py' | xargs sed -i "s%$old_shebang%$new_shebang%g"'
-RUN /bin/bash -c 'cd /home/baxter/simulated_ws/src/openai_ros;old_shebang="#!/usr/bin/env python";new_shebang="#!/usr/bin/env python3.6";find . -type f -name '*.py' | xargs sed -i "s%$old_shebang%$new_shebang%g"'
-RUN /bin/bash -c 'cd /home/baxter/simulated_ws/src/rl_envs;old_shebang="#!/usr/bin/env python";new_shebang="#!/usr/bin/env python3.6";find . -type f -name '*.py' | xargs sed -i "s%$old_shebang%$new_shebang%g"'
+RUN /bin/bash -c 'cd /home/baxter/openai_ws/src;old_shebang="#!/usr/bin/env python";new_shebang="#!/usr/bin/env python3.6";find . -type f -name '*.py' | xargs sed -i "s%$old_shebang%$new_shebang%g"'
+RUN /bin/bash -c 'cd /home/baxter/openai_ws/src;old_shebang="#!/usr/bin/env python3.63.6";new_shebang="#!/usr/bin/env python3.6";find . -type f -name '*.py' | xargs sed -i "s%$old_shebang%$new_shebang%g"'
 
-WORKDIR /home/baxter/simulated_ws
+WORKDIR /home/baxter/openai_ws
 RUN echo "source /home/baxter/hardware_ws/devel/setup.bash" >> ~/.bashrc
 RUN echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
 RUN echo "source /home/baxter/simulated_ws/devel/setup.bash" >> ~/.bashrc
+RUN echo "source /home/baxter/openai_ws/devel/setup.bash" >> ~/.bashrc
 RUN source ~/.bashrc
 
