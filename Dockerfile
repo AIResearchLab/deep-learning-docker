@@ -285,21 +285,21 @@ WORKDIR /home/baxter/openai_ws
 RUN echo '#!/bin/bash' > purge_learning_session.bash && \
     echo 'pkill gzserver' >> purge_learning_session.bash && \
     echo 'pkill roslaunch' >> purge_learning_session.bash && \
-
+echo 'built purge script' && \
     echo '#!/bin/bash' > py3_catkin_make.bash && \
     echo 'echo Please run this from the simulated workspace' >> py3_catkin_make.bash && \
     echo 'rm -r devel build logs' >> py3_catkin_make.bash && \
     echo 'catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release' >> py3_catkin_make.bash && \
     echo 'catkin build --cmake-args -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/usr/bin/python3.6 -DPYTHON_LIBRARY=/usr/lib/python3.6/config-3.6m-x86_64-linux-gnu/libpython3.6m.so -DPYTHON_INCLUDE_DIR=/usr/include/python3.6m' >> py3_catkin_make.bash && \
-
     echo 'source devel/setup.bash' >> py3_catkin_make.bash && \
+echo 'built py3 build script' && \
     echo '#!/bin/bash' > catkin_make.bash  && \
     echo 'echo Please run this from the simulated workspace' >> catkin_make.bash && \
     echo 'rm -r devel build logs' >> catkin_make.bash && \
     echo 'catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release' >> catkin_make.bash && \
     echo 'catkin build --cmake-args -DCMAKE_BUILD_TYPE=Release' >> catkin_make.bash  && \
     echo 'source devel/setup.bash' >> catkin_make.bash && \
-
+echo 'built py2 build script' && \
     chmod +x py3_catkin_make.bash catkin_make.bash purge_learning_session.bash
 
 #change this to a script and make it executable
