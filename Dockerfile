@@ -209,7 +209,7 @@ RUN ./configure && make install
 RUN echo "export LD_LIBRARY_PATH=/home/baxter/hardware_ws/devel/lib:/opt/ros/kinetic/lib:/opt/ros/kinetic/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/lib/x86_64-linux-gnu:/usr/local/lib/i386-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/lib/i386-linux-gnu:/usr/local/lib/" >> ~/.bashrc
 
 RUN apt update && apt upgrade
-RUN apt install -y python-pip xterm nautilus ros-kinetic-controller-manager ros-kinetic-four-wheel-steering-msgs ros-kinetic-urdf-geometry-parser ros-kinetic-joint-state* ros-kinetic-gazebo-ros-control ros-kinetic-joy ros-kinetic-pid ros-kinetic-ros-control ros-kinetic-effort-controllers python-rosdep python-catkin-tools python-wstool ssh xclip ros-kinetic-*rqt* ros-kinetic-turtlebot-gazebo python-click
+RUN apt install -y python-pip xterm nautilus ros-kinetic-controller-manager ros-kinetic-four-wheel-steering-msgs ros-kinetic-urdf-geometry-parser ros-kinetic-joint-state* ros-kinetic-gazebo-ros-control ros-kinetic-joy ros-kinetic-pid ros-kinetic-ros-control ros-kinetic-effort-controllers python-rosdep python-catkin-tools python-wstool ssh xclip ros-kinetic-*rqt* ros-kinetic-turtlebot-gazebo python-click ros-kinetic-position-controllers
 
 RUN pip2 install spnav rosdep rosinstall_generator wstool rosinstall catkin_pkg pyyaml empy rospkg numpy gitdb==0.6.4 gitpython==1.0.2 defusedxml gym==0.7.4
 
@@ -281,21 +281,26 @@ WORKDIR /home/baxter/hardware_ws
 RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /home/baxter/hardware_ws; catkin_make'
 
 WORKDIR /home/baxter/openai_ws
-RUN echo '#!/bin/bash' > py3_catkin_make.bash && \
+
+RUN echo '#!/bin/bash' > purge_learning_session.bash && \
+    echo 'pkill gzserver' >> purge_learning_session.bash && \
+    echo 'pkill roslaunch' >> purge_learning_session.bash && \
+
+    echo '#!/bin/bash' > py3_catkin_make.bash && \
     echo 'echo Please run this from the simulated workspace' >> py3_catkin_make.bash && \
-     echo 'rm -r devel build logs' >> py3_catkin_make.bash && \
-     echo 'catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release' >> py3_catkin_make.bash && \
-     echo 'catkin build --cmake-args -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/usr/bin/python3.6 -DPYTHON_LIBRARY=/usr/lib/python3.6/config-3.6m-x86_64-linux-gnu/libpython3.6m.so -DPYTHON_INCLUDE_DIR=/usr/include/python3.6m' >> py3_catkin_make.bash && \
-    echo 'source devel/setup.bash' >> py3_catkin_make.bash
+    echo 'rm -r devel build logs' >> py3_catkin_make.bash && \
+    echo 'catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release' >> py3_catkin_make.bash && \
+    echo 'catkin build --cmake-args -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/usr/bin/python3.6 -DPYTHON_LIBRARY=/usr/lib/python3.6/config-3.6m-x86_64-linux-gnu/libpython3.6m.so -DPYTHON_INCLUDE_DIR=/usr/include/python3.6m' >> py3_catkin_make.bash && \
 
-
-RUN echo '#!/bin/bash' > catkin_make.bash  && \
+    echo 'source devel/setup.bash' >> py3_catkin_make.bash && \
+    echo '#!/bin/bash' > catkin_make.bash  && \
     echo 'echo Please run this from the simulated workspace' >> catkin_make.bash && \
     echo 'rm -r devel build logs' >> catkin_make.bash && \
     echo 'catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release' >> catkin_make.bash && \
     echo 'catkin build --cmake-args -DCMAKE_BUILD_TYPE=Release' >> catkin_make.bash  && \
     echo 'source devel/setup.bash' >> catkin_make.bash && \
-    chmod +x py3_catkin_make.bash catkin_make.bash
+
+    chmod +x py3_catkin_make.bash catkin_make.bash purge_learning_session.bash
 
 #change this to a script and make it executable
 RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /home/baxter/openai_ws; catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release; catkin build --cmake-args -DCMAKE_BUILD_TYPE=Release'
@@ -318,4 +323,3 @@ RUN echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
 RUN echo "source /home/baxter/simulated_ws/devel/setup.bash" >> ~/.bashrc
 RUN echo "source /home/baxter/openai_ws/devel/setup.bash" >> ~/.bashrc
 RUN source ~/.bashrc
-
