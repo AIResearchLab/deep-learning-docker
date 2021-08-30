@@ -94,7 +94,7 @@ RUN apt install -y python-pip xterm nautilus ros-kinetic-controller-manager ros-
 RUN pip2 install spnav rosdep rosinstall_generator wstool rosinstall catkin_pkg pyyaml empy rospkg numpy gitdb==0.6.4 gitpython==1.0.2 defusedxml
 
 RUN pip3.6 install --upgrade pip
-RUN pip3.6 install -U rosdep rosinstall_generator wstool rosinstall catkin_pkg pyyaml empy rospkg numpy
+RUN pip3.6 install -U rosdep rosinstall_generator wstool rosinstall catkin_pkg pyyaml empy rospkg numpy simple_pid
 
 RUN apt update && apt upgrade -y
 
@@ -121,6 +121,13 @@ echo 'built py2 build script' && \
     chmod +x catkin_make.bash
 RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /home/baxter/pyb_ws; catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release; catkin build --cmake-args -DCMAKE_BUILD_TYPE=Release'
 
+RUN echo '#!/bin/bash' > make_dual_urdf.bash  && \
+    echo 'echo Please run this from the simulated workspace' >> make_dual_urdf.bash && \
+    echo 'source devel/setup.bash' >> make_dual_urdf.bash && \
+    echo 'path_of_randle_pybullet=$(rospack find randle_pybullet)' && \
+    echo 'urdf_target=$path_of_randle_pybullet/urdf/dual_randle_baxter.urdf' && \
+    echo 'urdf_source=$path_of_randle_pybullet/urdf/dual_randle_baxter.xacro' && \
+    echo 'rosrun xacro xacro --inorder -o $urdf_target $urdf_source'
 
 WORKDIR /home/baxter/
 RUN source ~/.bashrc
