@@ -3,6 +3,25 @@ FROM osrf/ros:kinetic-desktop-full
 ARG ssh_prv_key
 ARG ssh_pub_key
 
+
+#This section also moves your host private key for ssh repositories
+RUN apt update && \
+    apt install -y \
+        git \
+        openssh-server \
+        libmysqlclient-dev
+
+# Authorize SSH Host
+RUN mkdir -p /root/.ssh && \
+    chmod 0700 /root/.ssh && \
+    ssh-keyscan github.com > /root/.ssh/known_hosts
+
+# Add the keys and set permissions
+RUN echo "$ssh_prv_key" > ~/.ssh/id_ed25519 && \
+    echo "$ssh_pub_key" > ~/.ssh/id_ed25519.pub && \
+    chmod 600 ~/.ssh/id_ed25519 && \
+    chmod 600 ~/.ssh/id_ed25519.pub
+    
 # ROS Stuff
 RUN echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list && \
     apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654 && \
@@ -30,7 +49,7 @@ RUN sudo apt update
 RUN sudo apt install -y python3.6 python3.6-dev python3.6-tk
 RUN curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3.6
 RUN pip3.6 install --upgrade pip
-RUN pip3.6 install gitpython gitdb gym defusedxml tensorflow torch Keras h5py numpy scikit-image scikit-learn scipy rosdep rosinstall_generator wstool rosinstall roboticstoolbox-python opencv-python IPython pycocotools Pillow cython matplotlib imgaug rospkg catkin_pkg tqdm gdown 
+RUN pip3.6 install gitpython gitdb gym==0.9.7 defusedxml tensorflow torch Keras h5py numpy scikit-image scikit-learn scipy rosdep rosinstall_generator wstool rosinstall roboticstoolbox-python opencv-python IPython pycocotools Pillow cython matplotlib imgaug rospkg catkin_pkg tqdm gdown pybullet 
 #Setup and run the VM requirements
 RUN pip3.6 install virtualenv virtualenvwrapper cython
 #ENV venv_name=mclickrcnn
@@ -49,45 +68,8 @@ RUN ./aptsources-cleanup.pyz -y
 RUN apt update
 RUN apt upgrade -y
 
-#Installing baxter_sdk
-WORKDIR /home/baxter
-RUN mkdir -p hardware_ws/src
-RUN mkdir -p simulated_ws/src
-RUN mkdir -p openai_ws/src
-WORKDIR hardware_ws/src
-#Baxter firware needs release 1.1.1
-RUN git clone -b release-1.1.1 https://github.com/AIResearchLab/baxter
-WORKDIR /home/baxter/hardware_ws/src/baxter
-# removing baxter entry in rosinstall file to avoid duplicate baxter_sdk folders
-RUN sed -i '1,4d' baxter_sdk.rosinstall
-RUN wstool init . baxter_sdk.rosinstall 
-RUN wstool update
-# replacing the default hostname with the hostname of the UC Baxter and changingthe distro to kinetic
-RUN sed -i -e '22 s/baxter_hostname.local/011502P0001.local/g' -e '26 s/192.168.XXX.XXX/172.17.0.2/g'  -e '30 s/"indigo"/"kinetic"/g' baxter.sh
-RUN mv baxter.sh ../..
-WORKDIR /home/baxter/hardware_ws/src
-#installing ROS Astra package
-RUN git clone https://github.com/orbbec/ros_astra_camera
-RUN git clone https://github.com/orbbec/ros_astra_launch
-RUN git clone https://github.com/ros-planning/moveit_robots.git
-RUN sed -i -e '16 s/value="0.1"/value="0.0"/g' /home/baxter/hardware_ws/src/moveit_robots/baxter/baxter_moveit_config/launch/trajectory_execution.launch
-RUN git clone -b kinetic-devel https://github.com/UbiquityRobotics/fiducials
-RUN git clone -b kinetic-devel https://github.com/ros-perception/vision_msgs
-
-#Install the yolo program
-#RUN git clone --recursive https://github.com/leggedrobotics/darknet_ros
-#Install the requirements for mask rcnn
-RUN git clone https://github.com/wjwwood/serial
-RUN echo  "xterm*font:     *-fixed-*-*-*-18-*" > ~/.Xresources
-
-
 RUN apt update
 RUN apt upgrade -y
-
-WORKDIR /home/baxter/hardware_ws
-# it is neccesary to run 
-#set the system bashrc variables# automatically sources the default ros on docker run
-RUN echo "export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3.6" >> ~/.bashrc && echo "source /usr/local/bin/virtualenvwrapper.sh" >> ~/.bashrc
 
 WORKDIR /home/baxter/tools
 RUN git clone https://github.com/FreeSpacenav/spacenavd.git
@@ -97,120 +79,50 @@ RUN ./configure && make install
 WORKDIR /home/baxter/tools/libspnav
 RUN ./configure && make install
 
-RUN echo "export LD_LIBRARY_PATH=/home/baxter/hardware_ws/devel/lib:/opt/ros/kinetic/lib:/opt/ros/kinetic/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/lib/x86_64-linux-gnu:/usr/local/lib/i386-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/lib/i386-linux-gnu:/usr/local/lib/" >> ~/.bashrc
+###Section Install pybullet library and pybullet robots + pybullet_gym
+RUN mkdir -p /home/baxter/pyBulletRobotics
+WORKDIR /home/baxter/pyBulletRobotics
+RUN git clone https://github.com/benelot/pybullet-gym && git clone https://github.com/AIResearchLab/pybullet_robots
+RUN echo "export PYBULLET_DIR=/home/baxter/pyBulletRobotics" >> ~/.bashrc
+WORKDIR /home/baxter/pyBulletRobotics/pybullet-gym
+RUN pip3.6 install -e .
+
 
 RUN apt update && apt upgrade
 RUN apt install -y python-pip xterm nautilus ros-kinetic-controller-manager ros-kinetic-four-wheel-steering-msgs ros-kinetic-urdf-geometry-parser ros-kinetic-joint-state* ros-kinetic-gazebo-ros-control ros-kinetic-joy ros-kinetic-pid ros-kinetic-ros-control ros-kinetic-effort-controllers python-rosdep python-catkin-tools python-wstool ssh xclip ros-kinetic-*rqt* ros-kinetic-turtlebot-gazebo python-click ros-kinetic-position-controllers
 
-RUN pip2 install spnav rosdep rosinstall_generator wstool rosinstall catkin_pkg pyyaml empy rospkg numpy gitdb==0.6.4 gitpython==1.0.2 defusedxml gym==0.7.4
-
-#This section also moves your host private key for ssh repositories
-RUN apt update && \
-    apt install -y \
-        git \
-        openssh-server \
-        libmysqlclient-dev
-
-# Authorize SSH Host
-RUN mkdir -p /root/.ssh && \
-    chmod 0700 /root/.ssh && \
-    ssh-keyscan github.com > /root/.ssh/known_hosts
-
-# Add the keys and set permissions
-RUN echo "$ssh_prv_key" > /root/.ssh/id_ed25519 && \
-    echo "$ssh_pub_key" > /root/.ssh/id_ed25519.pub && \
-    chmod 600 /root/.ssh/id_ed25519 && \
-    chmod 600 /root/.ssh/id_ed25519.pub
-
-#RUN ssh -T git@github.com
-
-#end auto ssh test
-
-WORKDIR /home/baxter/simulated_ws/src
-RUN wstool init .
-RUN wstool merge https://raw.githubusercontent.com/vicariousinc/baxter_simulator/kinetic-gazebo7/baxter_simulator.rosinstall
-RUN wstool update
-RUN rosdep install -y --from-paths . --ignore-src --rosdistro kinetic --as-root=apt:false
-RUN git clone -b kinetic-devel https://github.com/AIResearchLab/control_msgs
-RUN git clone -b kinetic-devel https://github.com/AIResearchLab/ros_controllers
-RUN git clone https://github.com/wjwwood/serial
-
-
-WORKDIR /home/baxter/openai_ws/src
-RUN git clone -b version2 https://bitbucket.org/theconstructcore/openai_ros && \
-    git clone -b version2 https://bitbucket.org/theconstructcore/openai_examples_projects && \
-    git clone git@github.com:AIResearchLab/uc_deep_rl.git
-
-RUN mkdir -p /home/baxter/openai_ws/src/deps
-WORKDIR /home/baxter/openai_ws/src/deps
-RUN git clone -b jade-devel https://github.com/ros-planning/navigation_msgs/ && \
-    git clone https://bitbucket.org/theconstructcore/spawn_robot_tools && \
-    git clone -b indigo-devel https://github.com/ros/geometry && \
-    git clone -b indigo-devel https://github.com/ros/geometry2 && \
-    git clone -b kinetic-devel https://github.com/ros-simulation/gazebo_ros_pkgs && \
-    git clone -b indigo-devel https://github.com/ros/common_msgs
-RUN mkdir -p /home/baxter/openai_ws/src/rl_envs
-WORKDIR /home/baxter/openai_ws/src/rl_envs
-RUN git clone -b kinetic-gazebo9 https://bitbucket.org/theconstructcore/turtlebot && \
-    #git clone -b kinetic-gazebo7 https://bitbucket.org/theconstructcore/parrot_ardrone && \
-    git clone https://bitbucket.org/theconstructcore/hopper
-
-
-WORKDIR /home/baxter/simulated_ws/src
-##This is also a test, lets observe if the system requires an ssh key or not
-RUN git clone git@github.com:AIResearchLab/randle_description.git && \
-    git clone git@github.com:AIResearchLab/randle-control.git
+RUN pip2 install spnav rosdep rosinstall_generator wstool rosinstall catkin_pkg pyyaml empy rospkg numpy gitdb==0.6.4 gitpython==1.0.2 defusedxml
 
 RUN pip3.6 install --upgrade pip
 RUN pip3.6 install -U rosdep rosinstall_generator wstool rosinstall catkin_pkg pyyaml empy rospkg numpy
 
 RUN apt update && apt upgrade -y
 
+#create pybullet rl based ws, requirements include the core randle system, communication protocal and msgs
+RUN mkdir -p /home/baxter/pyb_ws/src
+WORKDIR /home/baxter/pyb_ws/src
+RUN git clone git@github.com:AIResearchLab/randle_serial.git && \
+git clone git@github.com:AIResearchLab/randle_core.git && \
+git clone https://github.com/wjwwood/serial && \
+git clone -b kinetic-devel https://github.com/RethinkRobotics/baxter_common
+#RUN wstool init .
+#RUN wstool merge https://raw.githubusercontent.com/vicariousinc/baxter_simulator/kinetic-gazebo7/baxter_simulator.rosinstall
+#RUN wstool update
+#RUN rosdep install -y --from-paths . --ignore-src --rosdistro kinetic --as-root=apt:false
 
-#Build HW WS
-WORKDIR /home/baxter/hardware_ws
-RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /home/baxter/hardware_ws; catkin_make'
-
-WORKDIR /home/baxter/openai_ws
-
-RUN echo '#!/bin/bash' > purge_learning_session.bash && \
-    echo 'pkill gzserver' >> purge_learning_session.bash && \
-    echo 'pkill roslaunch' >> purge_learning_session.bash && \
-echo 'built purge script' && \
-    echo '#!/bin/bash' > py3_catkin_make.bash && \
-    echo 'echo Please run this from the simulated workspace' >> py3_catkin_make.bash && \
-    echo 'rm -r devel build logs' >> py3_catkin_make.bash && \
-    echo 'catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release' >> py3_catkin_make.bash && \
-    echo 'catkin build --cmake-args -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/usr/bin/python3.6 -DPYTHON_LIBRARY=/usr/lib/python3.6/config-3.6m-x86_64-linux-gnu/libpython3.6m.so -DPYTHON_INCLUDE_DIR=/usr/include/python3.6m' >> py3_catkin_make.bash && \
-    echo 'source devel/setup.bash' >> py3_catkin_make.bash && \
-echo 'built py3 build script' && \
-    echo '#!/bin/bash' > catkin_make.bash  && \
+WORKDIR /home/baxter/pyb_ws
+RUN echo '#!/bin/bash' > catkin_make.bash  && \
     echo 'echo Please run this from the simulated workspace' >> catkin_make.bash && \
     echo 'rm -r devel build logs' >> catkin_make.bash && \
     echo 'catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release' >> catkin_make.bash && \
     echo 'catkin build --cmake-args -DCMAKE_BUILD_TYPE=Release' >> catkin_make.bash  && \
     echo 'source devel/setup.bash' >> catkin_make.bash && \
 echo 'built py2 build script' && \
-    chmod +x py3_catkin_make.bash catkin_make.bash purge_learning_session.bash
-
-#change this to a script and make it executable
-RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /home/baxter/openai_ws; catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release; catkin build --cmake-args -DCMAKE_BUILD_TYPE=Release'
-
-WORKDIR /home/baxter/simulated_ws
-#Build Sim WS, include catkin make script
-RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /home/baxter/simulated_ws;catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release; catkin build --cmake-args -DCMAKE_BUILD_TYPE=Release'
+    chmod +x catkin_make.bash
+RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /home/baxter/pyb_ws; catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release; catkin build --cmake-args -DCMAKE_BUILD_TYPE=Release'
 
 
-WORKDIR /home/baxter/openai_ws/src
-#Go into the src examples and replace all references to /home/user/simulation_ws/ with baxter configurations
-RUN /bin/bash -c 'cd /home/baxter/openai_ws/src;old_ws=/home/user/simulation_ws;new_ws=/home/baxter/openai_ws;find . -type f -name '*.yaml' | xargs sed -i "s%$old_ws%$new_ws%g"'
-#Go into the OpenAI packages and do the same thing but for the python shebangs
-RUN /bin/bash -c 'cd /home/baxter/openai_ws/src;old_shebang="#!/usr/bin/env python";new_shebang="#!/usr/bin/env python3.6";find . -type f -name '*.py' | xargs sed -i "s%$old_shebang%$new_shebang%g"'
-RUN /bin/bash -c 'cd /home/baxter/openai_ws/src;old_shebang="#!/usr/bin/env python3.63.6";new_shebang="#!/usr/bin/env python3.6";find . -type f -name '*.py' | xargs sed -i "s%$old_shebang%$new_shebang%g"'
-
-WORKDIR /home/baxter/openai_ws
-RUN echo "source /home/baxter/hardware_ws/devel/setup.bash" >> ~/.bashrc
-RUN echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
-RUN echo "source /home/baxter/simulated_ws/devel/setup.bash" >> ~/.bashrc
-RUN echo "source /home/baxter/openai_ws/devel/setup.bash" >> ~/.bashrc
+WORKDIR /home/baxter/
 RUN source ~/.bashrc
+
+ENTRYPOINT /bin/bash -c 'cd /home/baxter/pyb_ws/src/randle_core;git pull;cd /home/baxter/pyb_ws/src/randle_serial;git pull;cd /home/baxter/pyBulletRobotics/pybullet_robots;git pull' && /bin/bash

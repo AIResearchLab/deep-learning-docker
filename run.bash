@@ -30,7 +30,6 @@ docker run --rm -it --name="dl_robotics" \
     --env="QT_X11_NO_MITSHM=1" \
     --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
     --env="XAUTHORITY=$XAUTH" \
-    --runtime=nvidia \
     --volume="$XAUTH:$XAUTH" \
     deep_learning_kit
     
