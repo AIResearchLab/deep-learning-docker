@@ -1,5 +1,8 @@
 FROM osrf/ros:kinetic-desktop-full
 
+ARG ssh_prv_key
+ARG ssh_pub_key
+
 RUN rm -rf /var/lib/apt/lists/*
 
 ENV NVIDIA_VISIBLE_DEVICES=all \
@@ -210,11 +213,27 @@ RUN apt install -y python-pip xterm nautilus ros-kinetic-controller-manager ros-
 
 RUN pip2 install spnav rosdep rosinstall_generator wstool rosinstall catkin_pkg pyyaml empy rospkg numpy gitdb==0.6.4 gitpython==1.0.2 defusedxml gym==0.7.4
 
+#This section also moves your host private key for ssh repositories
 RUN apt update && \
     apt install -y \
         git \
         openssh-server \
         libmysqlclient-dev
+
+# Authorize SSH Host
+RUN mkdir -p /root/.ssh && \
+    chmod 0700 /root/.ssh && \
+    ssh-keyscan github.com > /root/.ssh/known_hosts
+
+# Add the keys and set permissions
+RUN echo "$ssh_prv_key" > /root/.ssh/id_ed25519 && \
+    echo "$ssh_pub_key" > /root/.ssh/id_ed25519.pub && \
+    chmod 600 /root/.ssh/id_ed25519 && \
+    chmod 600 /root/.ssh/id_ed25519.pub
+
+#RUN ssh -T git@github.com
+
+#end auto ssh test
 
 WORKDIR /home/baxter/simulated_ws/src
 RUN wstool init .
