@@ -1,11 +1,27 @@
 FROM osrf/ros:kinetic-desktop-full
 
+ARG ssh_prv_key
+ARG ssh_pub_key
+
+
+#This section also moves your host private key for ssh repositories
 RUN apt update && \
     apt install -y \
         git \
         openssh-server \
         libmysqlclient-dev
 
+# Authorize SSH Host
+RUN mkdir -p /root/.ssh && \
+    chmod 0700 /root/.ssh && \
+    ssh-keyscan github.com > /root/.ssh/known_hosts
+
+# Add the keys and set permissions
+RUN echo "$ssh_prv_key" > ~/.ssh/id_ed25519 && \
+    echo "$ssh_pub_key" > ~/.ssh/id_ed25519.pub && \
+    chmod 600 ~/.ssh/id_ed25519 && \
+    chmod 600 ~/.ssh/id_ed25519.pub
+    
 # ROS Stuff
 RUN echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list && \
     apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654 && \
@@ -55,7 +71,6 @@ RUN apt upgrade -y
 RUN apt update
 RUN apt upgrade -y
 
-#This section install spnav for spacemouse control and pybullet
 WORKDIR /home/baxter/tools
 RUN git clone https://github.com/FreeSpacenav/spacenavd.git
 RUN git clone https://github.com/FreeSpacenav/libspnav.git
@@ -71,7 +86,7 @@ RUN git clone https://github.com/benelot/pybullet-gym && git clone https://githu
 RUN echo "export PYBULLET_DIR=/home/baxter/pyBulletRobotics" >> ~/.bashrc
 WORKDIR /home/baxter/pyBulletRobotics/pybullet-gym
 RUN pip3.6 install -e .
-##Installation complete of pybullet and spacemouse stuff for RL
+
 
 RUN apt update && apt upgrade
 RUN apt install -y python-pip xterm nautilus ros-kinetic-controller-manager ros-kinetic-four-wheel-steering-msgs ros-kinetic-urdf-geometry-parser ros-kinetic-joint-state* ros-kinetic-gazebo-ros-control ros-kinetic-joy ros-kinetic-pid ros-kinetic-ros-control ros-kinetic-effort-controllers python-rosdep python-catkin-tools python-wstool ssh xclip ros-kinetic-*rqt* ros-kinetic-turtlebot-gazebo python-click ros-kinetic-position-controllers
@@ -95,10 +110,26 @@ git clone -b kinetic-devel https://github.com/RethinkRobotics/baxter_common
 #RUN wstool update
 #RUN rosdep install -y --from-paths . --ignore-src --rosdistro kinetic --as-root=apt:false
 
-WORKDIR /home/baxter/catkin_ws
-#Add repos here...
+WORKDIR /home/baxter/pyb_ws
+RUN echo '#!/bin/bash' > catkin_make.bash  && \
+    echo 'echo Please run this from the simulated workspace' >> catkin_make.bash && \
+    echo 'rm -r devel build logs' >> catkin_make.bash && \
+    echo 'catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release' >> catkin_make.bash && \
+    echo 'catkin build --cmake-args -DCMAKE_BUILD_TYPE=Release' >> catkin_make.bash  && \
+    echo 'source devel/setup.bash' >> catkin_make.bash && \
+echo 'built py2 build script' && \
+    chmod +x catkin_make.bash
+RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /home/baxter/pyb_ws; catkin config --extend /opt/ros/kinetic --cmake-args -DCMAKE_BUILD_TYPE=Release; catkin build --cmake-args -DCMAKE_BUILD_TYPE=Release'
 
-RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /home/baxter/catkin_ws; catkin_make'
+RUN echo '#!/bin/bash' > make_dual_urdf.bash  && \
+    echo 'echo Please run this from the simulated workspace' >> make_dual_urdf.bash && \
+    echo 'source devel/setup.bash' >> make_dual_urdf.bash && \
+    echo 'path_of_randle_pybullet=$(rospack find randle_pybullet)' >> make_dual_urdf.bash && \
+    echo 'urdf_target=$path_of_randle_pybullet/urdf/dual_randle_baxter.urdf' >> make_dual_urdf.bash && \
+    echo 'urdf_source=$path_of_randle_pybullet/urdf/dual_randle_baxter.xacro' >> make_dual_urdf.bash && \
+    echo 'rosrun xacro xacro --inorder -o $urdf_target $urdf_source' >> make_dual_urdf.bash && chmod +x make_dual_urdf.bash
 
 WORKDIR /home/baxter/
 RUN source ~/.bashrc
+
+ENTRYPOINT /bin/bash -c 'cd /home/baxter/pyb_ws/src/randle_core;git pull;cd /home/baxter/pyb_ws/src/randle_serial;git pull;cd /home/baxter/pyBulletRobotics/pybullet_robots;git pull' && /bin/bash
