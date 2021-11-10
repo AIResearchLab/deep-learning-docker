@@ -136,7 +136,7 @@ RUN sudo apt update
 RUN sudo apt install -y python3.6 python3.6-dev python3.6-tk
 RUN curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3.6
 RUN pip3.6 install --upgrade pip
-RUN pip3.6 install gitpython gitdb gym defusedxml tensorflow torch Keras h5py numpy scikit-image scikit-learn scipy rosdep rosinstall_generator wstool rosinstall roboticstoolbox-python opencv-python IPython pycocotools Pillow cython matplotlib imgaug rospkg catkin_pkg tqdm gdown 
+RUN pip3.6 install gitpython gitdb gym defusedxml tensorflow torch Keras h5py numpy scikit-image scikit-learn scipy rosdep rosinstall_generator rosinstall roboticstoolbox-python opencv-python IPython pycocotools Pillow cython matplotlib imgaug rospkg catkin_pkg tqdm gdown 
 #Setup and run the VM requirements
 RUN pip3.6 install virtualenv virtualenvwrapper cython
 #ENV venv_name=mclickrcnn
@@ -161,7 +161,11 @@ RUN mkdir -p hardware_ws/src
 RUN mkdir -p simulated_ws/src
 RUN mkdir -p openai_ws/src
 WORKDIR hardware_ws/src
+RUN git clone -b release/0.1.19 https://github.com/vcstools/wstool/
+WORKDIR /home/baxter/hardware_ws/src/wstool
+RUN python setup.py install
 #Baxter firware needs release 1.1.1
+WORKDIR /home/baxter/hardware_ws/src
 RUN git clone -b release-1.1.1 https://github.com/AIResearchLab/baxter
 WORKDIR /home/baxter/hardware_ws/src/baxter
 # removing baxter entry in rosinstall file to avoid duplicate baxter_sdk folders
@@ -206,9 +210,9 @@ RUN ./configure && make install
 RUN echo "export LD_LIBRARY_PATH=/home/baxter/hardware_ws/devel/lib:/opt/ros/kinetic/lib:/opt/ros/kinetic/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/lib/x86_64-linux-gnu:/usr/local/lib/i386-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/lib/i386-linux-gnu:/usr/local/lib/" >> ~/.bashrc
 
 RUN apt update && apt upgrade
-RUN apt install -y python-pip xterm nautilus ros-kinetic-controller-manager ros-kinetic-four-wheel-steering-msgs ros-kinetic-urdf-geometry-parser ros-kinetic-joint-state* ros-kinetic-gazebo-ros-control ros-kinetic-joy ros-kinetic-pid ros-kinetic-ros-control ros-kinetic-effort-controllers python-rosdep python-catkin-tools python-wstool ssh xclip ros-kinetic-*rqt* ros-kinetic-turtlebot-gazebo python-click ros-kinetic-position-controllers
+RUN apt install -y python-pip xterm nautilus ros-kinetic-controller-manager ros-kinetic-four-wheel-steering-msgs ros-kinetic-urdf-geometry-parser ros-kinetic-joint-state* ros-kinetic-gazebo-ros-control ros-kinetic-joy ros-kinetic-pid ros-kinetic-ros-control ros-kinetic-effort-controllers python-rosdep python-catkin-tools ssh xclip ros-kinetic-*rqt* ros-kinetic-turtlebot-gazebo python-click ros-kinetic-position-controllers
 
-RUN pip2 install spnav rosdep rosinstall_generator wstool rosinstall catkin_pkg pyyaml empy rospkg numpy gitdb==0.6.4 gitpython==1.0.2 defusedxml gym==0.7.4
+RUN pip2 install spnav rosdep rosinstall_generator rosinstall catkin_pkg pyyaml empy rospkg numpy gitdb==0.6.4 gitpython==1.0.2 defusedxml gym==0.7.4
 
 RUN apt update && \
     apt install -y \
@@ -252,7 +256,7 @@ RUN git clone git@github.com:AIResearchLab/randle_description.git && \
     git clone git@github.com:AIResearchLab/randle-control.git
 
 RUN pip3.6 install --upgrade pip
-RUN pip3.6 install -U rosdep rosinstall_generator wstool rosinstall catkin_pkg pyyaml empy rospkg numpy
+RUN pip3.6 install -U rosdep rosinstall_generator rosinstall catkin_pkg pyyaml empy rospkg numpy
 
 RUN apt update && apt upgrade -y
 
