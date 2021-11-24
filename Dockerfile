@@ -122,6 +122,7 @@ RUN echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
 
 # Package for installing Baxter
 RUN sudo apt-get update && sudo apt-get install -y build-essential wget git \
+
 # Astra packages
 ros-$ROS_DISTRO-rgbd-launch ros-$ROS_DISTRO-libuvc ros-$ROS_DISTRO-libuvc-camera ros-$ROS_DISTRO-libuvc-ros \
 # Move It
@@ -136,17 +137,24 @@ RUN sudo apt update
 RUN sudo apt install -y python3.6 python3.6-dev python3.6-tk
 RUN curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3.6
 RUN pip3.6 install --upgrade pip
-RUN pip3.6 install gitpython gitdb gym defusedxml tensorflow torch Keras h5py numpy scikit-image scikit-learn scipy rosdep rosinstall_generator rosinstall roboticstoolbox-python opencv-python IPython pycocotools Pillow cython matplotlib imgaug rospkg catkin_pkg tqdm gdown 
+RUN pip3.6 install gitpython gitdb gym defusedxml tensorflow==2.5.0 torch Keras==2.2.5 h5py numpy scikit-image scikit-learn scipy rosdep rosinstall_generator rosinstall roboticstoolbox-python opencv-python IPython pycocotools Pillow cython matplotlib imgaug rospkg catkin_pkg tqdm gdown 
 #Setup and run the VM requirements
 RUN pip3.6 install virtualenv virtualenvwrapper cython
-#ENV venv_name=mclickrcnn
-#CMD mkvirtualenv --python=python3 $venv_name
-#RUN curl https://bootstrap.pypa.io/pip/2.7/get-pip.py | sudo -H python
-#RUN pip install rosdep tensorflow-gpu==1.4.1 Keras==2.1.2 h5py==2.7.0 enum34==1.1.2
+# ENV venv_name=mclickrcnn
+# CMD mkvirtualenv --python=python3 $venv_name
+# RUN curl https://bootstrap.pypa.io/pip/2.7/get-pip.py | sudo -H python
+# RUN pip install rosdep tensorflow-gpu==1.4.1 Keras==2.1.2 h5py==2.7.0 enum34==1.1.2
+RUN \
+  apt-get update && \
+  apt-get install -y sudo curl git && \
+  curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash && \
+  sudo apt-get install git-lfs
+
 
 
 
 WORKDIR /home/baxter/
+# RUN git clone https://github.com/AIResearchLab/Clothe_analysis.git
 RUN mkdir -p tools
 WORKDIR tools
 RUN wget https://github.com/davidfoerster/aptsources-cleanup/releases/download/v0.1.7.5.2/aptsources-cleanup.pyz
@@ -232,8 +240,8 @@ RUN git clone https://github.com/wjwwood/serial
 
 WORKDIR /home/baxter/openai_ws/src
 RUN git clone -b version2 https://bitbucket.org/theconstructcore/openai_ros && \
-    git clone -b version2 https://bitbucket.org/theconstructcore/openai_examples_projects && \
-    git clone git@github.com:AIResearchLab/uc_deep_rl.git
+    git clone -b version2 https://bitbucket.org/theconstructcore/openai_examples_projects 
+# git clone git@github.com:AIResearchLab/uc_deep_rl.git
 
 RUN mkdir -p /home/baxter/openai_ws/src/deps
 WORKDIR /home/baxter/openai_ws/src/deps
@@ -252,8 +260,8 @@ RUN git clone -b kinetic-gazebo9 https://bitbucket.org/theconstructcore/turtlebo
 
 WORKDIR /home/baxter/simulated_ws/src
 ##This is also a test, lets observe if the system requires an ssh key or not
-RUN git clone git@github.com:AIResearchLab/randle_description.git && \
-    git clone git@github.com:AIResearchLab/randle-control.git
+# RUN git clone git@github.com:AIResearchLab/randle_description.git && \
+#     git clone git@github.com:AIResearchLab/randle-control.git
 
 RUN pip3.6 install --upgrade pip
 RUN pip3.6 install -U rosdep rosinstall_generator rosinstall catkin_pkg pyyaml empy rospkg numpy
