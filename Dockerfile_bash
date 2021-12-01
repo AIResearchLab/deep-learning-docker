@@ -199,10 +199,10 @@ RUN pip3.6 install -e .
 RUN apt update && apt upgrade
 RUN apt install -y python-pip xterm nautilus ros-kinetic-controller-manager ros-kinetic-four-wheel-steering-msgs ros-kinetic-urdf-geometry-parser ros-kinetic-joint-state* ros-kinetic-gazebo-ros-control ros-kinetic-joy ros-kinetic-pid ros-kinetic-ros-control ros-kinetic-effort-controllers python-rosdep python-catkin-tools python-wstool ssh xclip ros-kinetic-*rqt* ros-kinetic-turtlebot-gazebo python-click ros-kinetic-position-controllers
 
-RUN pip2 install spnav rosdep rosinstall_generator wstool rosinstall catkin_pkg pyyaml empy rospkg numpy defusedxml
+RUN pip2 install pyyaml spnav rosdep rosinstall_generator wstool rosinstall catkin_pkg empy rospkg numpy defusedxml
 
 RUN pip3.6 install --upgrade pip
-RUN pip3.6 install -U rosdep rosinstall_generator wstool rosinstall catkin_pkg pyyaml empy rospkg numpy simple_pid black
+RUN pip3.6 install -U pyyaml==5.4.0 rosdep rosinstall_generator wstool rosinstall catkin_pkg empy rospkg numpy simple_pid black
 
 RUN apt remove ros-kinetic-astra* -y && apt update && apt upgrade -y
 
@@ -212,16 +212,25 @@ WORKDIR /home/baxter/pyb_ws/src
 RUN git clone git@github.com:AIResearchLab/randle_serial.git && \
 git clone git@github.com:AIResearchLab/randle_core.git && \
 git clone https://github.com/wjwwood/serial && \
-git clone -b kinetic-devel https://github.com/RethinkRobotics/baxter_common && \
+#git clone -b kinetic-devel https://github.com/RethinkRobotics/baxter_common && \ Removed for hardware integreation
 git clone https://github.com/orbbec/ros_astra_camera && \
 git clone https://github.com/orbbec/ros_astra_launch && \
-git clone git@github.com:AIResearchLab/uc_common.git
-#RUN wstool init .
-#RUN wstool merge https://raw.githubusercontent.com/vicariousinc/baxter_simulator/kinetic-gazebo7/baxter_simulator.rosinstall
-#RUN wstool update
-#RUN rosdep install -y --from-paths . --ignore-src --rosdistro kinetic --as-root=apt:false
+git clone git@github.com:AIResearchLab/uc_common.git && \
+git clone -b release-1.1.1 https://github.com/AIResearchLab/baxter
+
+WORKDIR /home/baxter/pyb_ws/src/baxter
+# removing baxter entry in rosinstall file to avoid duplicate baxter_sdk folders
+RUN sed -i '1,4d' baxter_sdk.rosinstall
+RUN wstool init . baxter_sdk.rosinstall 
+RUN wstool update
+
+RUN rm baxter.sh
+
+COPY baxter.sh /home/baxter/pyb_ws/baxter.sh
+
 
 WORKDIR /home/baxter/pyb_ws
+
 RUN echo '#!/bin/bash' > catkin_make.bash  && \
     echo 'echo Please run this from the simulated workspace' >> catkin_make.bash && \
     echo 'rm -r devel build logs' >> catkin_make.bash && \
@@ -242,5 +251,5 @@ RUN echo '#!/bin/bash' > make_dual_urdf.bash  && \
 
 WORKDIR /home/baxter/
 RUN source ~/.bashrc
-
-ENTRYPOINT /bin/bash -c 'cd /home/baxter/pyb_ws/src/randle_core;git pull;cd /home/baxter/pyb_ws/src/randle_serial;git pull;cd /home/baxter/pyBulletRobotics/pybullet_robots;git pull' && /bin/bash
+WORKDIR /home/baxter/pyb_ws
+ENTRYPOINT /bin/bash -c 'cd /home/baxter/pyb_ws/src/randle_core;git pull;cd /home/baxter/pyb_ws/src/randle_serial;git pull;cd /home/baxter/pyBulletRobotics/pybullet_robots;git pull;cd /home/baxter/pyb_ws/src/uc_common;git pull;cd /home/baxter/pyb_ws;./catkin_make.bash;chmod +x baxter.sh' && /bin/bash
