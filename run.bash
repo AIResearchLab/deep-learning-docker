@@ -12,14 +12,6 @@ then
     chmod a+r $XAUTH
 fi
 
-if [[ -z "${YOUR_IP}" ]]; then
-  SYS_IP_ADDR=10.0.0.249
-else
-  SYS_IP_ADDR="${YOUR_IP}"
-fi
-
-
-
 xhost +local:docker
 docker run --rm -it --name="dl_robotics" \
     --network=host \
