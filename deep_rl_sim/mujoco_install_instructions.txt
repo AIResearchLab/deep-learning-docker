@@ -1,0 +1,31 @@
+##MUJOCO V 1.5
+##This section is for mujuco and deep RL sim data
+RUN mkdir -p /root/.mujoco && mkdir -p /home/baxter/mj_install && mkdir -p ~/.mujoco/
+COPY mjkey.txt /root/.mujoco/
+COPY mjpro150_linux.zip /home/baxter/mj_install
+WORKDIR /home/baxter/mj_install
+RUN unzip mjpro150_linux.zip -d . && cp -r mjpro150 /root/.mujoco/ && cp -r /root/.mujoco/mjkey.txt /root/.mujoco/mjpro150/bin/
+RUN echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/.mujoco/mjpro150/bin" >> ~/.bashrc
+
+RUN apt install -y libosmesa6-dev libgl1-mesa-glx libglfw3 patchelf
+
+RUN export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/.mujoco/mjpro150/bin && pip3.6 install -U supervisor 'mujoco-py<1.50.2,>=1.50.1'
+
+RUN apt update -y && apt install -y libglew-dev && echo "export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libGLEW.so" >> ~/.bashrc
+##
+
+MUJOCO V 2
+##This section is for mujuco and deep RL sim data
+RUN mkdir -p /root/.mujoco && mkdir -p /home/baxter/mj_install && mkdir -p ~/.mujoco/
+COPY mjkey.txt /root/.mujoco/
+COPY mujoco210.zip /home/baxter/mj_install
+WORKDIR /home/baxter/mj_install
+RUN unzip mujoco210.zip -d . && cp -r mujoco210 /root/.mujoco/ && cp -r /root/.mujoco/mjkey.txt /root/.mujoco/mujoco210/bin/
+RUN echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/.mujoco/mujoco210/bin" >> ~/.bashrc
+
+RUN apt install -y libosmesa6-dev libgl1-mesa-glx libglfw3 patchelf
+
+RUN export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/.mujoco/mjpro150/bin && pip3.6 install -U supervisor 'mujoco-py<2.2,>=2.1'
+
+RUN apt update -y && apt install -y libglew-dev && echo "export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libGLEW.so" >> ~/.bashrc
+##
