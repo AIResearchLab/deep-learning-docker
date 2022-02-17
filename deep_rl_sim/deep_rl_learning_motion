@@ -217,7 +217,7 @@ RUN pip3.6 install --upgrade pip
 RUN pip3.6 install "tensorflow-gpu>=1.3.0,<1.5.0" "keras>=2.0.8,<2.1.6" "h5py<3.0.0"
 RUN pip3.6 install torch==1.4.0
 RUN pip3.6 uninstall -y enum34
-RUN pip3.6 install imgaug scikit-image scikit-learn ipython numpy scipy Pillow cython matplotlib defusedxml rosdep rosinstall_generator wstool rosinstall roboticstoolbox-python cython rospkg catkin_pkg tqdm opencv-python opencv-python-headless gym==0.9.7 pybullet
+RUN pip3.6 install imgaug scikit-image scikit-learn ipython numpy scipy Pillow cython matplotlib defusedxml rosdep rosinstall_generator wstool rosinstall roboticstoolbox-python cython rospkg catkin_pkg tqdm opencv-python tensorboard==1.14.0 opencv-python-headless gym==0.9.7 pybullet
 
 #Setup and run the VM requirements
 RUN pip3.6 install virtualenv virtualenvwrapper cython
