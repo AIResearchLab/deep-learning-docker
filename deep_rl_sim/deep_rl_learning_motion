@@ -214,10 +214,13 @@ RUN sudo apt install -y python3.6 python3.6-dev python3.6-tk
 RUN curl https://bootstrap.pypa.io/pip/3.6/get-pip.py | sudo -H python3.6
 RUN pip3.6 install --upgrade pip
 
-RUN pip3.6 install "tensorflow-gpu>=1.3.0,<1.5.0" "keras>=2.0.8,<2.1.6" "h5py<3.0.0"
+RUN pip3.6 install -U "tensorflow-gpu>=1.3.0,<1.5.0" "keras>=2.0.8,<2.1.6" "h5py<3.0.0" roboticstoolbox-python
 RUN pip3.6 install torch==1.4.0
 RUN pip3.6 uninstall -y enum34
-RUN pip3.6 install imgaug scikit-image scikit-learn ipython numpy scipy Pillow cython matplotlib defusedxml rosdep rosinstall_generator wstool rosinstall roboticstoolbox-python cython rospkg catkin_pkg tqdm opencv-python tensorboard==1.14.0 opencv-python-headless gym==0.9.7 pybullet
+RUN pip3.6 install imgaug scikit-image scikit-learn ipython numpy scipy Pillow cython matplotlib defusedxml rosdep rosinstall_generator wstool rosinstall cython rospkg catkin_pkg tqdm opencv-python opencv-python-headless tensorboard==1.14.0 gym==0.9.7 pybullet sympy
+#If you want to analyse the data, use a different setup, i got not clue whats fucked
+
+#tensorboard==1.14.0
 
 #Setup and run the VM requirements
 RUN pip3.6 install virtualenv virtualenvwrapper cython
@@ -271,8 +274,8 @@ RUN git clone git@github.com:AIResearchLab/randle_serial.git && \
 git clone git@github.com:AIResearchLab/randle_core.git && \
 git clone https://github.com/wjwwood/serial && \
 #git clone -b kinetic-devel https://github.com/RethinkRobotics/baxter_common && \ Removed for hardware integreation
-git clone https://github.com/orbbec/ros_astra_camera && \
 git clone https://github.com/orbbec/ros_astra_launch && \
+git clone https://github.com/orbbec/ros_astra_camera && \
 git clone git@github.com:AIResearchLab/uc_common.git && \
 git clone git@github.com:AIResearchLab/fabric_sorting.git && \
 git clone git@github.com:AIResearchLab/uc_deep_rl.git && \
@@ -333,4 +336,4 @@ WORKDIR /home/baxter/pyb_ws
 
 COPY baxter.sh /home/baxter/pyb_ws/baxter.sh
 
-ENTRYPOINT /bin/bash -c 'cd /home/baxter/pyb_ws/src/randle_core;git pull;cd /home/baxter/pyb_ws/src/randle_serial;git pull;cd /home/baxter/pyBulletRobotics/pybullet_robots;git pull;cd /home/baxter/pyb_ws/src/uc_common;git pull;cd /home/baxter/pyb_ws;./catkin_make.bash;chmod +x baxter.sh' && /bin/bash
+ENTRYPOINT /bin/bash -c 'cd /home/baxter/pyb_ws/src/randle_core;git pull;cd /home/baxter/pyb_ws/src/randle_serial;git pull;cd /home/baxter/pyBulletRobotics/pybullet_robots;git pull;cd /home/baxter/pyb_ws/src/uc_common;git pull;cd /home/baxter/pyb_ws/src/uc_deep_rl;git pull;cd /home/baxter/pyb_ws/src/randle_core;pip3.6 install -e randle-envs;cd /home/baxter/pyb_ws;./catkin_make.bash;chmod +x baxter.sh' && /bin/bash

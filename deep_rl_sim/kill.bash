@@ -1,2 +1,2 @@
 #!/bin/bash
-docker kill test_dep_rl_kinxen
+docker kill deep_rl_gpu
