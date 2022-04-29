@@ -250,6 +250,7 @@ git clone https://github.com/wjwwood/serial && \
 #git clone -b kinetic-devel https://github.com/RethinkRobotics/baxter_common && \ Removed for hardware integreation
 git clone https://github.com/orbbec/ros_astra_camera && \
 git clone https://github.com/orbbec/ros_astra_launch && \
+git clone git@github.com:AIResearchLab/uc_deep_rl.git && \
 git clone git@github.com:AIResearchLab/uc_common.git && \
 git clone git@github.com:AIResearchLab/fabric_sorting.git && \
 git clone -b release-1.1.1 https://github.com/AIResearchLab/baxter && \
@@ -295,4 +296,4 @@ COPY baxter.sh /home/baxter/pyb_ws/baxter.sh
 RUN mkdir -p /home/baxter/models
 COPY Mask_RCNN_Trained_Model.h5 /home/baxter/models/Mask_RCNN_Trained_Model.h5
 
-ENTRYPOINT /bin/bash -c 'cd /home/baxter/pyb_ws/src/randle_core;git pull;cd /home/baxter/pyb_ws/src/randle_serial;git pull;cd /home/baxter/pyBulletRobotics/pybullet_robots;git pull;cd /home/baxter/pyb_ws/src/uc_common;git pull;cd /home/baxter/pyb_ws/src/maskrcnn_ros;git pull;cd /home/baxter/pyb_ws/src/fabric_sorting;git pull;cd /home/baxter/pyb_ws;./catkin_make.bash;chmod +x baxter.sh' && /bin/bash
+ENTRYPOINT /bin/bash -c 'cd /home/baxter/pyb_ws/src/uc_deep_rl;git pull;cd /home/baxter/pyb_ws/src/randle_core;git pull;cd /home/baxter/pyb_ws/src/randle_serial;git pull;cd /home/baxter/pyBulletRobotics/pybullet_robots;git pull;cd /home/baxter/pyb_ws/src/uc_common;git pull;cd /home/baxter/pyb_ws/src/maskrcnn_ros;git pull;cd /home/baxter/pyb_ws/src/fabric_sorting;git pull;cd /home/baxter/pyb_ws;./catkin_make.bash;chmod +x baxter.sh' && /bin/bash

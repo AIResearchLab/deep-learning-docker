@@ -218,6 +218,7 @@ RUN pip3.6 install -U "tensorflow-gpu>=1.3.0,<1.5.0" "keras>=2.0.8,<2.1.6" "h5py
 RUN pip3.6 install torch==1.4.0
 RUN pip3.6 uninstall -y enum34
 RUN pip3.6 install imgaug scikit-image scikit-learn ipython numpy scipy Pillow cython matplotlib defusedxml rosdep rosinstall_generator wstool rosinstall cython rospkg catkin_pkg tqdm opencv-python opencv-python-headless tensorboard==1.14.0 gym==0.9.7 pybullet sympy
+RUN pip3.6 install -U autopep8
 #If you want to analyse the data, use a different setup, i got not clue whats fucked
 
 #tensorboard==1.14.0
@@ -336,4 +337,4 @@ WORKDIR /home/baxter/pyb_ws
 
 COPY baxter.sh /home/baxter/pyb_ws/baxter.sh
 
-ENTRYPOINT /bin/bash -c 'cd /home/baxter/pyb_ws/src/randle_core;git pull;cd /home/baxter/pyb_ws/src/randle_serial;git pull;cd /home/baxter/pyBulletRobotics/pybullet_robots;git pull;cd /home/baxter/pyb_ws/src/uc_common;git pull;cd /home/baxter/pyb_ws/src/uc_deep_rl;git pull;cd /home/baxter/pyb_ws/src/randle_core;pip3.6 install -e randle-envs;cd /home/baxter/pyb_ws;./catkin_make.bash;chmod +x baxter.sh' && /bin/bash
+ENTRYPOINT /bin/bash -c 'cd /home/baxter/pyb_ws/src/randle_core;git pull;cd /home/baxter/pyb_ws/src/randle_serial;git pull;cd /home/baxter/pyBulletRobotics/pybullet_robots;git pull;cd /home/baxter/pyb_ws/src/uc_common;git pull;cd /home/baxter/pyb_ws/src/uc_deep_rl;git pull;cd /home/baxter/pyb_ws/src/randle_core;pip3.6 install -e randle-envs;cd /home/baxter/pyb_ws;./catkin_make.bash;chmod +x baxter.sh;source devel/setup.bash' && /bin/bash
