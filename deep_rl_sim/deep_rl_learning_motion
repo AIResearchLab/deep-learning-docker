@@ -275,8 +275,8 @@ RUN git clone git@github.com:AIResearchLab/randle_serial.git && \
 git clone git@github.com:AIResearchLab/randle_core.git && \
 git clone https://github.com/wjwwood/serial && \
 #git clone -b kinetic-devel https://github.com/RethinkRobotics/baxter_common && \ Removed for hardware integreation
-git clone https://github.com/orbbec/ros_astra_launch && \
 git clone https://github.com/orbbec/ros_astra_camera && \
+git clone https://github.com/orbbec/ros_astra_launch && \
 git clone git@github.com:AIResearchLab/uc_common.git && \
 git clone git@github.com:AIResearchLab/fabric_sorting.git && \
 git clone git@github.com:AIResearchLab/uc_deep_rl.git && \
@@ -292,7 +292,7 @@ WORKDIR /home/baxter/mj_install
 RUN unzip mujoco210.zip -d . && cp -r mujoco210 /root/.mujoco/ && cp -r /root/.mujoco/mjkey.txt /root/.mujoco/mujoco210/bin/
 RUN echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/.mujoco/mujoco210/bin" >> ~/.bashrc
 
-RUN apt install -y libosmesa6-dev libgl1-mesa-glx libglfw3 patchelf
+RUN apt install -y libosmesa6-dev libgl1-mesa-glx libglfw3 patchelf htop
 
 RUN export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/.mujoco/mjpro150/bin && pip3.6 install -U supervisor 'mujoco-py<2.2,>=2.1'
 
@@ -337,4 +337,4 @@ WORKDIR /home/baxter/pyb_ws
 
 COPY baxter.sh /home/baxter/pyb_ws/baxter.sh
 
-ENTRYPOINT /bin/bash -c 'cd /home/baxter/pyb_ws/src/randle_core;git pull;cd /home/baxter/pyb_ws/src/randle_serial;git pull;cd /home/baxter/pyBulletRobotics/pybullet_robots;git pull;cd /home/baxter/pyb_ws/src/uc_common;git pull;cd /home/baxter/pyb_ws/src/uc_deep_rl;git pull;cd /home/baxter/pyb_ws/src/randle_core;pip3.6 install -e randle-envs;cd /home/baxter/pyb_ws;./catkin_make.bash;chmod +x baxter.sh;source devel/setup.bash' && /bin/bash
+ENTRYPOINT /bin/bash -c 'cd /home/baxter/pyb_ws/src/randle_core;git pull;cd /home/baxter/pyb_ws/src/randle_serial;git pull;cd /home/baxter/pyBulletRobotics/pybullet_robots;git pull;cd /home/baxter/pyb_ws/src/uc_common;git pull;cd /home/baxter/pyb_ws/src/uc_deep_rl;git pull;cd /home/baxter/pyb_ws/src/randle_core;cd /home/baxter/pyb_ws;./catkin_make.bash;chmod +x baxter.sh;source devel/setup.bash' && /bin/bash
