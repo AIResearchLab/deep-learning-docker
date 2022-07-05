@@ -91,15 +91,22 @@ ENV LD_LIBRARY_PATH=/usr/local/lib/x86_64-linux-gnu:/usr/local/lib/i386-linux-gn
 # ==================
 # below sourced from https://gitlab.com/nvidia/cuda/blob/ubuntu16.04/8.0/runtime/Dockerfile
 
-RUN apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub && \
+#RUN apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub && \
+#RUN apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/3bf863cc.pub && \
+
+RUN apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub 109 && \
+    apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64/7fa2af80.pub && \
     echo "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64 /" > /etc/apt/sources.list.d/cuda.list && \
     echo "deb http://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1604/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list
+
 
 ENV CUDA_VERSION_MAJOR=8.0 \
     CUDA_VERSION_MINOR=61 \
     CUDA_PKG_EXT=8-0
-ENV CUDA_VERSION=$CUDA_VERSION_MAJOR.$CUDA_VERSION_MINOR
-RUN apt-get update && apt-get install -y --no-install-recommends \
+ENV CUDA_VERSION=$CUDA_VERSION_MAJOR.$CUDA_VERSION_MINOR 
+
+#--allow-unauthenticated
+RUN apt-get update && apt-get install -y --no-install-recommends \ 
         cuda-nvrtc-dev-$CUDA_PKG_EXT=$CUDA_VERSION-1 \
         cuda-nvgraph-dev-$CUDA_PKG_EXT=$CUDA_VERSION-1 \
         cuda-cusolver-dev-$CUDA_PKG_EXT=$CUDA_VERSION-1 \
@@ -167,34 +174,6 @@ RUN echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc
 RUN apt update && apt -y upgrade
     
 SHELL ["/bin/bash", "-c"]
-
-#This section also moves your host private key for ssh repositories
-RUN apt update && \
-    apt install -y \
-        git \
-        openssh-server \
-        libmysqlclient-dev
-
-# Authorize SSH Host
-RUN mkdir -p /root/.ssh && \
-    chmod 0700 /root/.ssh && \
-    ssh-keyscan github.com > /root/.ssh/known_hosts
-
-# Add the keys and set permissions
-RUN echo "$ssh_prv_key" > ~/.ssh/id_ed25519 && \
-    echo "$ssh_pub_key" > ~/.ssh/id_ed25519.pub && \
-    chmod 600 ~/.ssh/id_ed25519 && \
-    chmod 600 ~/.ssh/id_ed25519.pub
-
-# ROS Stuff
-RUN echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list && \
-    apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654 && \
-    apt-get update
-
-#
-RUN apt update && apt -y upgrade
-    
-SHELL ["/bin/bash", "-c"]
 RUN echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
 
 # Package for installing Baxter
@@ -214,7 +193,7 @@ RUN sudo apt install -y python3.6 python3.6-dev python3.6-tk
 RUN curl https://bootstrap.pypa.io/pip/3.6/get-pip.py | sudo -H python3.6
 RUN pip3.6 install --upgrade pip
 
-RUN pip3.6 install -U "tensorflow-gpu>=1.3.0,<1.5.0" "keras>=2.0.8,<2.1.6" "h5py<3.0.0" roboticstoolbox-python
+RUN pip3.6 install -U "tensorflow-gpu>=1.3.0,<1.5.0" "keras>=2.0.8,<2.1.6" "h5py<3.0.0" spatialmath-python==0.11 roboticstoolbox-python==0.11.0
 RUN pip3.6 install torch==1.4.0
 RUN pip3.6 uninstall -y enum34
 RUN pip3.6 install imgaug scikit-image scikit-learn ipython numpy scipy Pillow cython matplotlib defusedxml rosdep rosinstall_generator wstool rosinstall cython rospkg catkin_pkg tqdm opencv-python opencv-python-headless tensorboard==1.14.0 gym==0.9.7 pybullet sympy
