@@ -91,7 +91,12 @@ ENV LD_LIBRARY_PATH=/usr/local/lib/x86_64-linux-gnu:/usr/local/lib/i386-linux-gn
 # ==================
 # below sourced from https://gitlab.com/nvidia/cuda/blob/ubuntu16.04/8.0/runtime/Dockerfile
 
-RUN apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub && \
+#RUN apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub && \
+#    echo "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64 /" > /etc/apt/sources.list.d/cuda.list && \
+#    echo "deb http://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1604/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list
+
+RUN apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub 109 && \
+    apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64/7fa2af80.pub && \
     echo "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64 /" > /etc/apt/sources.list.d/cuda.list && \
     echo "deb http://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1604/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list
 
@@ -99,7 +104,7 @@ ENV CUDA_VERSION_MAJOR=8.0 \
     CUDA_VERSION_MINOR=61 \
     CUDA_PKG_EXT=8-0
 ENV CUDA_VERSION=$CUDA_VERSION_MAJOR.$CUDA_VERSION_MINOR
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --allow-unauthenticated --no-install-recommends \
         cuda-nvrtc-dev-$CUDA_PKG_EXT=$CUDA_VERSION-1 \
         cuda-nvgraph-dev-$CUDA_PKG_EXT=$CUDA_VERSION-1 \
         cuda-cusolver-dev-$CUDA_PKG_EXT=$CUDA_VERSION-1 \
@@ -239,7 +244,20 @@ RUN pip2 install pyyaml spnav rosdep rosinstall_generator wstool rosinstall catk
 
 RUN pip3.6 install --upgrade pip && \
 pip3.6 install -U pyyaml==5.4.0 rosdep rosinstall_generator wstool rosinstall catkin_pkg empy rospkg numpy simple_pid black && \
-pip3.6 uninstall -y opencv-python && pip3.6 install opencv-python python-polylabel
+pip3.6 uninstall -y opencv-python && pip3.6 install opencv-python python-polylabel && \
+pip3.6 install tensorboard==1.14.0 gym==0.9.7 sympy
+
+##Some new code is need for prerequisites of the UVC camera --apt purge libuvc-dev && 
+RUN apt autoremove -y
+WORKDIR /home/baxter/tools
+RUN git clone https://github.com/libuvc/libuvc.git
+WORKDIR /home/baxter/tools/libuvc
+RUN git checkout d3318ae && mkdir -p build
+WORKDIR /home/baxter/tools/libuvc/build
+RUN cmake .. && make -j4 && make install && ldconfig
+
+
+
 
 #create pybullet rl based ws, requirements include the core randle system, communication protocal and msgs
 RUN mkdir -p /home/baxter/pyb_ws/src
