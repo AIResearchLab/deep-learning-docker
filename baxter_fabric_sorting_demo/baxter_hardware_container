@@ -199,7 +199,7 @@ RUN pip3.6 install --upgrade pip
 
 RUN pip3.6 install "tensorflow-gpu>=1.3.0,<1.5.0" "keras>=2.0.8,<2.1.6" "h5py<3.0.0"
 RUN pip3.6 uninstall -y enum34
-RUN pip3.6 install imgaug scikit-image scikit-learn ipython numpy scipy Pillow cython matplotlib defusedxml rosdep rosinstall_generator wstool rosinstall roboticstoolbox-python cython rospkg catkin_pkg tqdm opencv-python opencv-python-headless
+RUN pip3.6 install spatialmath-python==0.11 roboticstoolbox-python==0.11.0 imgaug scikit-image scikit-learn ipython numpy scipy Pillow cython matplotlib defusedxml rosdep rosinstall_generator wstool rosinstall cython rospkg catkin_pkg tqdm opencv-python opencv-python-headless
 
 #Setup and run the VM requirements
 RUN pip3.6 install virtualenv virtualenvwrapper cython
