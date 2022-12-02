@@ -14,7 +14,7 @@ then
 fi
 
 xhost +local:docker
-docker run --rm -d --name="RL_eval" \
+docker run --rm -it --name="deep_rl_gpu" \
     --network none \
     --env="DISPLAY=$DISPLAY" \
     --env="QT_X11_NO_MITSHM=1" \
@@ -22,7 +22,3 @@ docker run --rm -d --name="RL_eval" \
     --runtime=nvidia \
     --volume="$XAUTH:$XAUTH" \
     anaylsis_runtime_img
-
-docker exec -it anaylsis_runtime_img echo helloworld
-
-docker kill anaylsis_runtime_img

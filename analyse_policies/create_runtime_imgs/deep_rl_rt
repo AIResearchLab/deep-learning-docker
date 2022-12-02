@@ -1,0 +1,3 @@
+FROM test_dep_rl_kinxen
+
+ENTRYPOINT /bin/bash -c 'echo Non-update version created' && /bin/bash
