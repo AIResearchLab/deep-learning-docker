@@ -1,5 +1,18 @@
 #!/bin/bash
 
+echo 'please ensure this bash script is being run in the same directory'
+#First create results
+if [ -d "./results" ] 
+then
+    echo "Directory ./results exists."
+    exit 0 
+else
+    echo "Creating results folder"
+    mkdir results
+fi
+
+
+#The loop activation
 XAUTH=/tmp/.docker.xauth
 if [ ! -f $XAUTH ]
 then
@@ -14,7 +27,7 @@ then
 fi
 
 xhost +local:docker
-docker run --rm -d --name="RL_eval" \
+docker run --rm -t -d --name="TD3_grid_eval" \
     --network none \
     --env="DISPLAY=$DISPLAY" \
     --env="QT_X11_NO_MITSHM=1" \
@@ -23,6 +36,14 @@ docker run --rm -d --name="RL_eval" \
     --volume="$XAUTH:$XAUTH" \
     anaylsis_runtime_img
 
-docker exec -it anaylsis_runtime_img echo helloworld
+#Execute learning
+docker exec -it TD3_grid_eval /bin/bash -c 'echo helloworld;sleep 3;echo helloworld3'
 
-docker kill anaylsis_runtime_img
+#Find the full path of the learning logs setup
+docker exec -it TD3_grid_eval /bin/bash -c 'cd /home/baxter/'
+
+docker cp TD3_grid_eval:/file/path/within/container resu
+
+
+
+docker kill TD3_grid_eval
