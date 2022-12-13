@@ -246,7 +246,7 @@ RUN apt install -y libgoogle-glog-dev libgflags-dev protobuf-compiler libprotobu
 RUN pip2 install pyyaml spnav rosdep rosinstall_generator wstool rosinstall catkin_pkg empy rospkg numpy defusedxml
 
 RUN pip3.6 install --upgrade pip && \
-pip3.6 install -U pyyaml==5.4.0 rosdep rosinstall_generator wstool rosinstall catkin_pkg empy rospkg numpy simple_pid black && \
+pip3.6 install -U pyyaml==5.4.0 rosdep rosinstall_generator wstool rosinstall catkin_pkg empy rospkg numpy simple_pid black pytransform3d && \
 pip3.6 uninstall -y opencv-python && pip3.6 install opencv-python python-polylabel && \
 pip3.6 install tensorboard==1.14.0 gym==0.9.7 sympy torch==1.4.0
 
