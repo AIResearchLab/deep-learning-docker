@@ -25,9 +25,9 @@ then
     fi
     chmod a+r $XAUTH
 fi
-
+dyna_img_name=$((RANDOM))"_TD3_grid_eval"
 xhost +local:docker
-docker run --rm -t -d --name="TD3_grid_eval" \
+docker run --rm -t -d --name=$dyna_img_name \
     --network none \
     --env="DISPLAY=$DISPLAY" \
     --env="QT_X11_NO_MITSHM=1" \

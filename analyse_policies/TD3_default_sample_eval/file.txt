@@ -1,0 +1,1 @@
+docker cp 24296_TD3_eval:/home/baxter/pyb_ws/src/learning_logsTD3--2023-02-03-10-41-44--3963 /home/UCSTAFF.WIN.CANBERRA.EDU.AU/s434169/docker_repos/deep-learning-docker/analyse_policies/TD3_default_sample_eval/results24296_TD3_eval
