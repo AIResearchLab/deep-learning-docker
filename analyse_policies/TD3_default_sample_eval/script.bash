@@ -53,13 +53,18 @@ str_cmd="docker cp "
 str_cmd+=$dyna_img_name
 str_cmd+=":"
 str_cmd+=$results_folder
-final_cmd=$(echo $str_cmd | tr '\n' ' ')" "$(echo $target_dir | tr '\n' ' ')
 
+str_cmd=${str_cmd//$'\n'/}
+target_dir=${target_dir//$'\n'/}
+str_cmd=${str_cmd//$'\r'/}
+target_dir=${target_dir//$'\r'/}
 
 echo "STRING_CMD: "
+final_cmd=$str_cmd" "$target_dir
 echo $final_cmd
 echo "NOW ATTEMPTING TO STORING FILE"
-#eval $str_cmd
+eval $final_cmd
 
 echo "KILLING CONTAINER"
-#docker kill $dyna_img_name cat <<<$str_cmd' '$target_dir > file.txt
+docker kill $dyna_img_name
+# cat <<<$str_cmd' '$target_dir > file.txt
