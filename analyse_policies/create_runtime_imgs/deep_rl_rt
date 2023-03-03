@@ -1,6 +1,6 @@
 FROM test_dep_rl_kinxen
 
-ARG basic_evalYYYQMfdgesdfs
+ARG basic_evalYYYQMfdgesdfsdfsdfs
 
 RUN /bin/bash -c 'cd /home/baxter/pyb_ws/src/randle_core;git pull;cd /home/baxter/pyb_ws/src/randle_serial;git pull;cd /home/baxter/pyBulletRobotics/pybullet_robots;git pull;cd /home/baxter/pyb_ws/src/uc_common;git pull;cd /home/baxter/pyb_ws/src/uc_deep_rl;git pull;cd /home/baxter/pyb_ws/src/randle_core;cd /home/baxter/pyb_ws;./catkin_make.bash;chmod +x baxter.sh;source devel/setup.bash' && /bin/bash
 

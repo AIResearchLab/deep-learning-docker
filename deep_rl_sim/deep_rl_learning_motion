@@ -240,7 +240,7 @@ WORKDIR /home/baxter/pyBulletRobotics/pybullet-gym
 RUN pip3.6 install -e .
 
 
-RUN apt update && apt upgrade
+RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash && apt update && apt upgrade && apt install git-lfs
 RUN apt install -y libgoogle-glog-dev libgflags-dev protobuf-compiler libprotobuf-dev unzip python-pip xterm nautilus ros-kinetic-controller-manager ros-kinetic-four-wheel-steering-msgs ros-kinetic-urdf-geometry-parser ros-kinetic-joint-state* ros-kinetic-gazebo-ros-control ros-kinetic-joy ros-kinetic-pid ros-kinetic-ros-control ros-kinetic-effort-controllers python-rosdep python-catkin-tools python-wstool ssh xclip ros-kinetic-*rqt* ros-kinetic-turtlebot-gazebo python-click ros-kinetic-position-controllers && apt remove ros-kinetic-astra* -y && apt update && apt upgrade -y
 
 RUN pip2 install pyyaml spnav rosdep rosinstall_generator wstool rosinstall catkin_pkg empy rospkg numpy defusedxml
@@ -257,9 +257,9 @@ git clone git@github.com:AIResearchLab/randle_core.git && \
 git clone https://github.com/wjwwood/serial && \
 #git clone -b kinetic-devel https://github.com/RethinkRobotics/baxter_common && \ Removed for hardware integreation
 git clone https://github.com/orbbec/ros_astra_camera --branch 0.3.0 && \
-git clone https://github.com/orbbec/ros_astra_launch && \
 git clone git@github.com:AIResearchLab/uc_common.git && \
 git clone git@github.com:AIResearchLab/fabric_sorting.git && \
+git clone https://github.com/orbbec/ros_astra_launch && \
 git clone git@github.com:AIResearchLab/uc_deep_rl.git && \
 git clone -b kinetic-devel https://github.com/RethinkRobotics/baxter_common && \
 git clone -b kinetic-devel https://github.com/ros-planning/moveit_robots.git
