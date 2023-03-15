@@ -16,7 +16,7 @@ then
     chmod a+r $XAUTH
 fi
 
-dyna_img_name=$((RANDOM))"_TD3_eval"
+dyna_img_name=$((RANDOM))"_SAC_eval"
 xhost +local:docker
 docker run --rm -t -d --name=$dyna_img_name \
     --network bridge \
@@ -33,7 +33,7 @@ target_dir=$local_dir'/results'$dyna_img_name
 mkdir $target_dir
 
 #Execute learning
-docker exec -it $dyna_img_name /bin/bash -c 'source /home/baxter/pyb_ws/devel/setup.bash;roslaunch randle_learner _sac.launch'
+docker exec -it $dyna_img_name /bin/bash -c 'source /home/baxter/pyb_ws/devel/setup.bash;roslaunch randle_learner _sac_alpha_ovr.launch alpha_overwrite:=0.75'
 
 #Find the full path of the learning logs setup
 echo "DELAY OF SAVE EXE"

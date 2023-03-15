@@ -1,0 +1,12 @@
+./script5.bash
+./script05.bash
+./script75.bash
+./script90.bash
+./script5.bash
+./script05.bash
+./script75.bash
+./script90.bash
+./script5.bash
+./script05.bash
+./script75.bash
+./script90.bash

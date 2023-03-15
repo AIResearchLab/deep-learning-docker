@@ -1,2 +1,2 @@
 #!/bin/bash
-docker build -f deep_rl_rt . -t anaylsis_runtime_img
+docker build -f deep_rl_rt . --no-cache -t anaylsis_runtime_img
