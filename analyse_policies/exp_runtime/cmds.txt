@@ -1,0 +1,8 @@
+./bash_parse_parallel.bash TD3 'roslaunch randle_learner _tgs.launch'
+./bash_parse_parallel.bash TD3 'roslaunch randle_learner _tgs.launch'
+./bash_parse_parallel.bash TD3 'roslaunch randle_learner _tgs.launch'
+./bash_parse_parallel.bash TD3 'roslaunch randle_learner _tgs.launch'
+./bash_parse_parallel.bash TD3 'roslaunch randle_learner _tgs.launch'
+./bash_parse_parallel.bash TD3 'roslaunch randle_learner _tgs.launch'
+./bash_parse_parallel.bash TD3 'roslaunch randle_learner _tgs.launch'
+./bash_parse_parallel.bash TD3 'roslaunch randle_learner _tgs.launch'

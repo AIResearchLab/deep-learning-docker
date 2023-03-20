@@ -1,6 +1,18 @@
 #!/bin/bash
 
+#using this script
+#from directory file is in, run following format...
+# first arg is either SAC or TD3
+#second arg is the roslaunch command
+#i.e. 
+#       ./bash_parse.bash TD3 'roslaunch randle_learner _tgs.launch'
+
+Alg=$1
+
+
 echo 'please ensure this bash script is being run in the same directory'
+
+
 
 #The loop activation
 XAUTH=/tmp/.docker.xauth
@@ -16,7 +28,7 @@ then
     chmod a+r $XAUTH
 fi
 
-dyna_img_name=$((RANDOM))"_SAC_eval"
+dyna_img_name=$((RANDOM))"_$1_eval"
 xhost +local:docker
 docker run --rm -t -d --name=$dyna_img_name \
     --network bridge \
@@ -33,8 +45,12 @@ target_dir=$local_dir'/results'$dyna_img_name
 mkdir $target_dir
 
 #Execute learning
-docker exec -it $dyna_img_name /bin/bash -c 'source /home/baxter/pyb_ws/devel/setup.bash;roslaunch randle_learner _sac_alpha_ovr.launch alpha_overwrite:=0.9'
-
+init_cmd="source /home/baxter/pyb_ws/devel/setup.bash;"
+#topass="\'$init_cmd$1\'"
+topass=\'$init_cmd$2\'
+echo "$topass"
+#docker exec -it $dyna_img_name /bin/bash -c "eval $topass" --can't parallel tty
+docker exec -i $dyna_img_name /bin/bash -c "eval $topass"
 #Find the full path of the learning logs setup
 echo "DELAY OF SAVE EXE"
 sleep 3
@@ -44,7 +60,8 @@ echo "END DELAY"
 echo 'TARGET DIRECTORY'
 echo $target_dir
 
-results_folder=$(docker exec -t -i $dyna_img_name /bin/bash -c 'ls -d /home/baxter/pyb_ws/src/learn*')
+#results_folder=$(docker exec -t -i $dyna_img_name /bin/bash -c 'ls -d /home/baxter/pyb_ws/src/learn*') --can't parallel tty
+results_folder=$(docker exec -i $dyna_img_name /bin/bash -c 'ls -d /home/baxter/pyb_ws/src/learn*')
 
 echo "FOUND FOLDER "
 echo $results_folder

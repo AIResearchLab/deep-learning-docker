@@ -33,7 +33,11 @@ target_dir=$local_dir'/results'$dyna_img_name
 mkdir $target_dir
 
 #Execute learning
-docker exec -it $dyna_img_name /bin/bash -c 'source /home/baxter/pyb_ws/devel/setup.bash;roslaunch randle_learner _sac_alpha_ovr.launch alpha_overwrite:=0.05'
+init_cmd="source /home/baxter/pyb_ws/devel/setup.bash;"
+#topass="\'$init_cmd$1\'"
+topass=\'$init_cmd$1\'
+echo "$topass"
+docker exec -it $dyna_img_name /bin/bash -c "eval $topass"
 
 #Find the full path of the learning logs setup
 echo "DELAY OF SAVE EXE"
